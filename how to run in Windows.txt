@@ -1,0 +1,101 @@
+HOW TO RUN vdo2srt ON WINDOWS
+==============================
+
+1. Open File Explorer and navigate to E:\vdo2srt
+2. Double-click  vdo2srt.bat
+3. A dialog appears — choose "Single video / audio file" or "Entire folder (batch)"
+4. A file (or folder) picker appears — select your video or folder
+5. A method picker appears — click  Local — GPU,  Local — CPU,  or  Google Cloud
+6. A terminal window opens and shows progress.
+   When done, two files are saved beside each video:
+     film.srt      — subtitles in the original language
+     film.en.srt   — English translation (automatic, no API key needed)
+
+▎ Tip: If the terminal closes too fast to read an error, run it from a terminal instead (see below).
+
+---
+FROM A TERMINAL (Command Prompt or PowerShell)
+
+1. Press Win + R, type cmd, press Enter
+2. Run:
+     E:\vdo2srt\vdo2srt.bat "E:\path\to\your\movie.mkv" --engine local --language ru
+
+ex:  "E:\vdo2srt\venv\Scripts\python.exe" "E:\vdo2srt\vdo2srt.py" "E:\vdo2srt\video\Укрощение огня.  1 серия.mp4" --engine local --language ru 2>&1
+
+
+The terminal stays open so you can read the output.
+
+---
+COMMON COMMAND-LINE EXAMPLES
+
+:: GUI mode — dialogs for file/folder and method
+E:\vdo2srt\vdo2srt.bat
+
+:: Single Russian film, GPU, with automatic English translation (default)
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru
+
+:: Skip translation (original subtitles only)
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --no-translate
+
+:: Translate to a language other than English
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --target-language fr
+
+:: English film, GPU
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mp4" --engine local --language en
+
+:: Auto-detect language
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mp4" --engine local
+
+:: Tighter subtitle splitting (4 seconds instead of default 6)
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --max-duration 4
+
+:: Disable splitting entirely
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --max-duration 0
+
+:: Save SRT to a different location (single-file mode only)
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local -o "E:\Subtitles\film.srt"
+
+:: Google Cloud engine
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine cloud --language ru --credentials "E:\API Key\Google API Keys\speech2txt.json"
+
+---
+BATCH MODE — Process an entire folder at once
+
+:: GUI mode — folder picker and method picker appear automatically
+E:\vdo2srt\vdo2srt.bat
+
+:: Command-line batch (pass a folder path instead of a file path)
+E:\vdo2srt\vdo2srt.bat "E:\Movies"
+E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru
+E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru --no-translate
+E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru --target-language fr
+E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine cloud --language ru --credentials "E:\API Key\Google API Keys\speech2txt.json"
+
+:: Re-process files that already have a .srt file
+E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru --overwrite
+
+Files that already have a matching .srt are skipped automatically (unless --overwrite is passed).
+
+---
+KEY DEFAULTS (when you don't specify an option)
+
+┌─────────────────────┬──────────────────────────────────────────────┐
+│        What         │                   Default                    │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Engine              │ GUI picker                                   │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Model               │ large-v3 (best quality)                      │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Device              │ Auto — uses GPU if available, CPU otherwise  │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Language            │ Auto-detected                                │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Max entry duration  │ 6 seconds                                    │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Output location     │ Same folder as the video, .srt extension     │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Translation         │ ON — always produces an .en.srt              │
+│                     │ (pass --no-translate to skip)                │
+├─────────────────────┼──────────────────────────────────────────────┤
+│ Target language     │ en (English)                                 │
+└─────────────────────┴──────────────────────────────────────────────┘

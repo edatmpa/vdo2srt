@@ -1,0 +1,8 @@
+# Core — always needed
+faster-whisper          # faster Whisper implementation (CTranslate2 backend)
+tqdm                    # progress bars
+deep-translator         # Google Translate (and others) — no API key required
+
+# Google Cloud Speech-to-Text — needed only for --engine cloud
+google-cloud-speech
+google-auth
