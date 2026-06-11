@@ -12,6 +12,12 @@ import os
 # Must be set before any module that loads libiomp5md.dll is imported.
 os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
+# Ensure CUDA 12 runtime DLLs can be found (e.g. cublas64_12.dll).
+_cuda_path = r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.5\bin"
+if os.path.isdir(_cuda_path):
+    os.environ.setdefault("PATH", _cuda_path)
+    os.environ["PATH"] = _cuda_path + os.pathsep + os.environ["PATH"]
+
 import sys
 from pathlib import Path
 
