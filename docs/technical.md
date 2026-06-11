@@ -3,11 +3,18 @@
 ## Architecture
 
 ```
-vdo2srt.py          CLI entry point — argument parsing, GUI dialogs, orchestration
-extractor.py        FFmpeg wrapper — audio extraction and chunking
-transcriber.py      Transcription engines — faster-whisper (local) and Google STT (cloud)
-srt_writer.py       SRT formatter — converts segments to subtitle file
-vdo2srt.bat         Windows launcher — activates venv automatically
+vdo2srt.py           Thin wrapper — delegates to src/ package (backward-compatible entry point)
+vdo2srt.bat          Windows launcher — activates venv automatically
+src/
+├── __init__.py      Package marker, version string
+├── __main__.py      Entry point for `python -m src`
+├── cli.py           CLI entry point — argument parsing, orchestration, batch/single-file routing
+├── gui.py           Tkinter GUI dialogs — file/folder picker, method picker
+├── extractor.py     FFmpeg wrapper — audio extraction and chunking
+├── transcriber.py   Transcription engines — faster-whisper (local) and Google STT (cloud)
+├── translator.py    Subtitle translation via Google Translate (batched, retry logic)
+├── srt_writer.py    SRT formatter — converts segments to subtitle file
+└── utils.py         Shared constants (SUPPORTED_EXTENSIONS) and helpers (find_media_files)
 ```
 
 ---
@@ -17,9 +24,9 @@ vdo2srt.bat         Windows launcher — activates venv automatically
 ```
 Input file (any video/audio format)
     │
-    ▼  [optional] pick_file() tkinter dialog — if no input arg given
+    ▼  [optional] gui.pick_file() / gui.pick_folder() — if no input arg given
     │
-    ▼  [optional] pick_method() tkinter dialog — if --engine not given
+    ▼  [optional] gui.pick_method() — if --engine not given
     │
     ▼  extractor.extract_audio()
 Normalized 16kHz mono WAV  (temp file under _TEMP_DIR)
@@ -30,9 +37,9 @@ Normalized 16kHz mono WAV  (temp file under _TEMP_DIR)
     │                        split_segments() re-cuts at word boundaries → segments
     │
     └── engine=cloud ──► CloudTranscriber.transcribe()
-                             split into 55s chunks via extractor.extract_chunk()
-                             Google STT API per chunk
-                             reassemble with timestamp offsets → segments
+                              split into 55s chunks via extractor.extract_chunk()
+                              Google STT API per chunk
+                              reassemble with timestamp offsets → segments
     │
     ▼  srt_writer.write_srt()
 output.srt  (same folder as input by default)
@@ -42,19 +49,54 @@ output.srt  (same folder as input by default)
 
 ## Module Reference
 
-### `vdo2srt.py`
+### `vdo2srt.py` (root)
 
-Entry point. Handles argument parsing and orchestration.
+Thin wrapper that adds the project root to `sys.path` and delegates to `src.cli.main()`.
+Kept for backward compatibility — all existing scripts and the `.bat` launcher continue to work.
 
-#### GUI dialogs
+### `src/__main__.py`
 
-When run with no arguments, two tkinter dialogs appear in sequence:
+Allows running the package directly: `python -m src`
 
-**`pick_file() → Path`**  
+### `src/cli.py`
+
+Entry point for the application. Handles argument parsing and orchestration.
+
+#### `build_parser() → argparse.ArgumentParser`
+Constructs the argument parser with all CLI flags.
+
+#### `parse_args(argv=None) → argparse.Namespace`
+Parses command-line arguments. Accepts an optional list for testing.
+
+#### `process_file(input_path, output_path, transcriber, translate, target_lang) → bool`
+Core processing pipeline for a single file:
+1. `extract_audio()` → WAV
+2. `transcriber.transcribe()` → segments
+3. `write_srt()` → `.srt`
+4. (if translate) `translate_segments()` → `.{target_lang}.srt`
+
+#### `main(argv=None) → None`
+Main entry point. Resolves input (CLI arg or GUI dialog), engine (CLI arg or GUI dialog),
+then routes to single-file or batch mode.
+
+### `src/gui.py`
+
+Tkinter GUI dialogs used when arguments are omitted.
+
+#### `make_root() → tk.Tk`
+Creates a withdrawn, always-on-top Tk root used by all dialogs.
+
+#### `pick_target_type(root) → str`
+Two-button dialog: "Single video / audio file" or "Entire folder (batch)". Returns `'file'` or `'folder'`.
+
+#### `pick_file(root) → Path`
 Standard Windows file-open dialog. Filters for common video/audio extensions.
 Exits with code 0 if the user cancels.
 
-**`pick_method() → tuple[str, str]`**  
+#### `pick_folder(root) → Path`
+Standard Windows folder picker. Exits with code 0 if cancelled.
+
+#### `pick_method(root) → tuple[str, str]`
 Three-button window returning `(engine, device)`:
 
 | Button | engine | device |
@@ -69,12 +111,9 @@ The dialogs only appear when the corresponding argument is absent.
 Passing `--engine` on the command line skips `pick_method()`; passing a positional
 `input` argument skips `pick_file()`.
 
-**`_tk_root() → tk.Tk`**  
-Internal helper. Creates a withdrawn, always-on-top Tk root used by both dialogs.
-
 ---
 
-### `extractor.py`
+### `src/extractor.py`
 
 #### `_TEMP_DIR`
 Module-level constant: `Path(tempfile.gettempdir()) / "vdo2srt"`.
@@ -102,7 +141,7 @@ Returns path to `_TEMP_DIR / chunk_<offset>.wav`.
 
 ---
 
-### `transcriber.py`
+### `src/transcriber.py`
 
 Top-level imports: `tqdm`, `get_duration`, `extract_chunk` are imported at module level
 (not inside methods) so import errors appear at startup rather than mid-run.
@@ -220,12 +259,12 @@ Re-cuts segments that exceed `max_duration` seconds, splitting at word boundarie
 - Word text is joined with `"".join(w.word ...).strip()` — faster-whisper includes leading spaces on each word token, so joining produces natural spacing.
 
 #### `get_transcriber(engine, model, language, credentials, device, max_duration) → LocalTranscriber | CloudTranscriber`
-Factory function called by `vdo2srt.py`. Returns the correct transcriber instance.
+Factory function called by `cli.py`. Returns the correct transcriber instance.
 `max_duration` is forwarded to `LocalTranscriber` only; `CloudTranscriber` ignores it.
 
 ---
 
-### `srt_writer.py`
+### `src/srt_writer.py`
 
 #### `write_srt(segments: list[dict], output_path: Path) → int`
 Writes SRT-formatted subtitle file. Returns the number of entries written.
@@ -244,6 +283,33 @@ Second subtitle text
 - Encoding: UTF-8 (required for non-Latin scripts)
 - Empty or whitespace-only segments are skipped
 - Timestamps are clamped to ≥ 0
+
+---
+
+### `src/translator.py`
+
+#### `translate_segments(segments, target_lang="en", source_lang="auto") → list[dict]`
+Translates segment text using `deep-translator` (Google Translate, no API key).
+Returns new segments with translated text but original timing.
+
+**Batching strategy:**
+- Segments are grouped in batches of 20 (`_BATCH_SIZE`)
+- Each batch is joined with ` ||| ` separator for a single HTTP call
+- If the separator is mangled in translation, falls back to one request per segment
+- Retries up to 3 times (5s, 10s, 15s backoff) on network errors
+
+---
+
+### `src/utils.py`
+
+#### `SUPPORTED_EXTENSIONS`
+Set of supported file extensions (`.mp4`, `.mkv`, `.avi`, `.mov`, `.wmv`, `.m4v`, `.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`).
+
+#### `is_media_file(path: Path) → bool`
+Returns `True` if the path is a file with a supported media extension (case-insensitive).
+
+#### `find_media_files(folder: Path) → list[Path]`
+Returns a sorted list of supported media files inside the given folder.
 
 ---
 
@@ -298,11 +364,11 @@ multiple engine/language combinations on the same source file.
 ## Extending the Tool
 
 ### Adding a new cloud engine (e.g. Azure Speech)
-1. Create a new class in `transcriber.py` following the same interface:
+1. Create a new class in `src/transcriber.py` following the same interface:
    - Constructor accepts `language` and credential parameters
    - `transcribe(audio_path: Path) → list[dict]` returns `[{start, end, text}]`
 2. Add the new engine name to the `get_transcriber()` factory
-3. Add the new `--engine` choice to `vdo2srt.py`'s argument parser
+3. Add the new `--engine` choice to `src/cli.py`'s argument parser
 
 ### Changing chunk duration for Google STT
 Adjust `CHUNK_DURATION` in the `CloudTranscriber` class body. Must remain below 60 seconds

@@ -68,6 +68,12 @@ E:\vdo2srt\venv\Scripts\activate
 python vdo2srt.py "E:\Movies\my_movie.mp4"
 ```
 
+### Option D — Module entry point
+```
+E:\vdo2srt\venv\Scripts\activate
+python -m src "E:\Movies\my_movie.mp4" --engine local
+```
+
 > **Common mistake:** Running `python vdo2srt.py` from the base conda environment (`(base)` in the
 > prompt) will fail because the packages are installed in the venv, not in conda. Always activate
 > the venv first, or use `vdo2srt.bat`.
@@ -95,6 +101,22 @@ E:\vdo2srt\vdo2srt.bat "E:\Movies\my_movie.mp4" --engine local --device cuda --m
 ### Save the SRT to a specific location
 ```
 E:\vdo2srt\vdo2srt.bat "E:\Movies\my_movie.mp4" --output "E:\Subtitles\movie_subtitles.srt"
+```
+
+### Batch process an entire folder
+```
+E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru
+```
+All supported video/audio files in the folder are processed. Each gets its own `.srt` (and `.en.srt`) next to the original. Files that already have a `.srt` are skipped unless you add `--overwrite`.
+
+### Skip the English translation
+```
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --no-translate
+```
+
+### Translate to a language other than English
+```
+E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --target-language fr
 ```
 
 ---
@@ -169,15 +191,18 @@ Open a new terminal after running this. Then credentials are picked up automatic
 
 | Option | Description | Default |
 |---|---|---|
-| `input` | Video or audio file to process. Omit to open a file picker. | *(file picker)* |
+| `input` | Video or audio file or folder to process. Omit to open a file picker. | *(file picker)* |
 | `--engine local` | Use local Whisper — works offline, uses GPU if available | *(method picker)* |
 | `--engine cloud` | Use Google Cloud Speech-to-Text | |
 | `--device` | `auto` / `cuda` / `cpu` — GPU device for local engine | auto |
 | `--model` | Whisper model: tiny / base / small / medium / large-v2 / large-v3 | large-v3 |
 | `--language` | Language code (e.g. en, ja, ru). Local auto-detects if omitted. | auto-detect |
 | `--max-duration` | Split entries longer than N seconds at word boundaries. Pass `0` to disable. | 6 |
+| `--no-translate` | Skip the automatic English translation | off (translate) |
+| `--target-language` | Translate into this language instead of English | en |
 | `--credentials` | Path to Google service account JSON | env var |
-| `--output` / `-o` | Output SRT file path | same folder as input |
+| `--output` / `-o` | Output SRT file path (single-file mode only) | same folder as input |
+| `--overwrite` | (Folder mode) Re-process files that already have a `.srt` | off |
 
 ---
 

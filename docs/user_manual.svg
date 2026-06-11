@@ -1,0 +1,309 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="3290" viewBox="0 0 1200 3290" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d47a1;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gpuGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#76b900;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4a7c00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cpuGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6d00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4285f4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1967d2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="successGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f9d58;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e8e3e;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="black" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="3290" fill="#ffffff"/>
+
+  <!-- ===== HEADER ===== -->
+  <rect x="0" y="0" width="1200" height="200" fill="url(#headerGrad)"/>
+  <text x="600" y="80" text-anchor="middle" fill="#ffffff" font-size="48" font-weight="700">vdo2srt</text>
+  <text x="600" y="125" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="22">Video / Audio to SRT Subtitle Converter</text>
+  <text x="600" y="160" text-anchor="middle" fill="#ffffff" fill-opacity="0.6" font-size="15">Version 2.0.0 - Convert any movie or audio file to subtitles</text>
+
+  <!-- ===== QUICK START ===== -->
+  <rect x="40" y="230" width="1120" height="140" rx="12" fill="#f8f9fa" filter="url(#shadow)"/>
+  <rect x="40" y="230" width="1120" height="40" rx="12" fill="url(#successGrad)"/>
+  <rect x="40" y="258" width="1120" height="12" fill="url(#successGrad)"/>
+  <text x="70" y="256" fill="#ffffff" font-size="20" font-weight="700">Quick Start - Double-click to run</text>
+  <text x="70" y="300" fill="#333" font-size="15">1. Double-click <tspan font-weight="700" fill="#1a73e8">vdo2srt.bat</tspan> - no typing required</text>
+  <text x="70" y="325" fill="#333" font-size="15">2. Choose "Single video / audio file" or "Entire folder (batch)"</text>
+  <text x="70" y="350" fill="#333" font-size="15">3. Pick your file/folder - Choose transcription method - Done! SRT files appear beside your video</text>
+
+  <!-- ===== WHAT IT DOES ===== -->
+  <rect x="40" y="400" width="1120" height="120" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="435" fill="#1a73e8" font-size="20" font-weight="700">What It Does</text>
+  <text x="70" y="465" fill="#444" font-size="14">Takes any video file (MP4, MKV, AVI, MOV, etc.) or audio file (MP3, WAV, FLAC, etc.) and</text>
+  <text x="70" y="485" fill="#444" font-size="14">automatically generates <tspan font-weight="700">.srt subtitle files</tspan> - ready to use in any media player or editor.</text>
+  <text x="70" y="510" fill="#444" font-size="14">Also produces an <tspan font-weight="700">English translation</tspan> (.en.srt) automatically - no API key needed for translation.</text>
+
+  <!-- ===== PIPELINE ===== -->
+  <rect x="40" y="550" width="1120" height="200" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="585" fill="#1a73e8" font-size="20" font-weight="700">Processing Pipeline</text>
+
+  <rect x="70" y="610" width="220" height="60" rx="8" fill="#e3f2fd" stroke="#1a73e8" stroke-width="1.5"/>
+  <text x="180" y="635" text-anchor="middle" fill="#0d47a1" font-size="14" font-weight="700">1. Audio Extraction</text>
+  <text x="180" y="655" text-anchor="middle" fill="#555" font-size="11">FFmpeg - 16kHz mono WAV</text>
+
+  <polygon points="300,640 320,630 320,650" fill="#1a73e8"/>
+
+  <rect x="330" y="610" width="220" height="60" rx="8" fill="#fff3e0" stroke="#ff6d00" stroke-width="1.5"/>
+  <text x="440" y="635" text-anchor="middle" fill="#bf360c" font-size="14" font-weight="700">2. Transcription</text>
+  <text x="440" y="655" text-anchor="middle" fill="#555" font-size="11">Whisper (local) or Google STT</text>
+
+  <polygon points="560,640 580,630 580,650" fill="#ff6d00"/>
+
+  <rect x="590" y="610" width="220" height="60" rx="8" fill="#e8f5e9" stroke="#0f9d58" stroke-width="1.5"/>
+  <text x="700" y="635" text-anchor="middle" fill="#1e8e3e" font-size="14" font-weight="700">3. SRT Writing</text>
+  <text x="700" y="655" text-anchor="middle" fill="#555" font-size="11">Formatted subtitle file</text>
+
+  <polygon points="820,640 840,630 840,650" fill="#0f9d58"/>
+
+  <rect x="850" y="610" width="220" height="60" rx="8" fill="#fce4ec" stroke="#e91e63" stroke-width="1.5"/>
+  <text x="960" y="635" text-anchor="middle" fill="#880e4f" font-size="14" font-weight="700">4. Translation</text>
+  <text x="960" y="655" text-anchor="middle" fill="#555" font-size="11">Google Translate - .en.srt</text>
+
+  <rect x="350" y="700" width="500" height="35" rx="6" fill="#f5f5f5" stroke="#ccc" stroke-width="1" stroke-dasharray="4"/>
+  <text x="600" y="723" text-anchor="middle" fill="#555" font-size="13">Output:  <tspan font-weight="700">film.srt</tspan>  (original)  +  <tspan font-weight="700">film.en.srt</tspan>  (English translation)</text>
+
+  <!-- ===== TRANSCRIPTION METHODS ===== -->
+  <rect x="40" y="780" width="1120" height="280" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="815" fill="#1a73e8" font-size="20" font-weight="700">Choose Your Transcription Method</text>
+
+  <!-- GPU -->
+  <rect x="70" y="840" width="340" height="200" rx="10" fill="url(#gpuGrad)" filter="url(#shadow)"/>
+  <text x="240" y="875" text-anchor="middle" fill="#fff" font-size="22" font-weight="700">Local - GPU</text>
+  <text x="240" y="900" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="13">Fast, offline - uses NVIDIA GPU</text>
+  <line x1="100" y1="915" x2="380" y2="915" stroke="#ffffff" stroke-opacity="0.27" stroke-width="1"/>
+  <text x="90" y="940" fill="#fff" font-size="13">Fastest option (~32x realtime)</text>
+  <text x="90" y="965" fill="#fff" font-size="13">Works offline - no internet needed</text>
+  <text x="90" y="990" fill="#fff" font-size="13">Best quality (large-v3 model)</text>
+  <text x="90" y="1015" fill="#fff" font-size="13">CUDA auto-detected</text>
+
+  <!-- CPU -->
+  <rect x="430" y="840" width="340" height="200" rx="10" fill="url(#cpuGrad)" filter="url(#shadow)"/>
+  <text x="600" y="875" text-anchor="middle" fill="#fff" font-size="22" font-weight="700">Local - CPU</text>
+  <text x="600" y="900" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="13">Slower, offline - no GPU required</text>
+  <line x1="460" y1="915" x2="740" y2="915" stroke="#ffffff" stroke-opacity="0.27" stroke-width="1"/>
+  <text x="450" y="940" fill="#fff" font-size="13">Works on any computer</text>
+  <text x="450" y="965" fill="#fff" font-size="13">Works offline</text>
+  <text x="450" y="990" fill="#fff" font-size="13">Slow (~0.3x realtime)</text>
+  <text x="450" y="1015" fill="#fff" font-size="13">76-min film = 4 hours</text>
+
+  <!-- Cloud -->
+  <rect x="790" y="840" width="340" height="200" rx="10" fill="url(#cloudGrad)" filter="url(#shadow)"/>
+  <text x="960" y="875" text-anchor="middle" fill="#fff" font-size="22" font-weight="700">Google Cloud</text>
+  <text x="960" y="900" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="13">Accurate, online - needs credentials</text>
+  <line x1="820" y1="915" x2="1100" y2="915" stroke="#ffffff" stroke-opacity="0.27" stroke-width="1"/>
+  <text x="810" y="940" fill="#fff" font-size="13">Highest accuracy</text>
+  <text x="810" y="965" fill="#fff" font-size="13">Built-in punctuation</text>
+  <text x="810" y="990" fill="#fff" font-size="13">Requires internet</text>
+  <text x="810" y="1015" fill="#fff" font-size="13">Costs ~$0.33 per film</text>
+
+  <!-- ===== COMMAND LINE ===== -->
+  <rect x="40" y="1090" width="1120" height="420" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="1125" fill="#1a73e8" font-size="20" font-weight="700">Command-Line Examples</text>
+
+  <rect x="70" y="1145" width="1060" height="350" rx="8" fill="#1e1e1e"/>
+  <text x="90" y="1175" fill="#6a9955" font-size="13" font-style="italic">:: GUI mode - dialogs appear automatically</text>
+  <text x="90" y="1200" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat</text>
+  <text x="90" y="1230" fill="#6a9955" font-size="13" font-style="italic">:: Single Russian film, GPU, with English translation</text>
+  <text x="90" y="1255" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru</text>
+  <text x="90" y="1285" fill="#6a9955" font-size="13" font-style="italic">:: Skip English translation (original subtitles only)</text>
+  <text x="90" y="1310" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --no-translate</text>
+  <text x="90" y="1340" fill="#6a9955" font-size="13" font-style="italic">:: Translate to French instead of English</text>
+  <text x="90" y="1365" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --target-language fr</text>
+  <text x="90" y="1395" fill="#6a9955" font-size="13" font-style="italic">:: Batch process an entire folder</text>
+  <text x="90" y="1420" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru</text>
+  <text x="90" y="1450" fill="#6a9955" font-size="13" font-style="italic">:: Google Cloud engine</text>
+  <text x="90" y="1475" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine cloud --language ru --credentials "E:\key.json"</text>
+
+  <!-- ===== OPTIONS TABLE ===== -->
+  <rect x="40" y="1540" width="1120" height="430" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="1575" fill="#1a73e8" font-size="20" font-weight="700">All CLI Options</text>
+
+  <rect x="70" y="1595" width="1060" height="35" rx="6" fill="#1a73e8"/>
+  <text x="100" y="1618" fill="#fff" font-size="14" font-weight="700">Option</text>
+  <text x="350" y="1618" fill="#fff" font-size="14" font-weight="700">Description</text>
+  <text x="850" y="1618" fill="#fff" font-size="14" font-weight="700">Default</text>
+
+  <rect x="70" y="1630" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="1650" fill="#333" font-size="13" font-weight="700">input</text>
+  <text x="350" y="1650" fill="#555" font-size="13">Video/audio file or folder path</text>
+  <text x="850" y="1650" fill="#888" font-size="13">File picker dialog</text>
+
+  <rect x="70" y="1660" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="1680" fill="#333" font-size="13" font-weight="700">--engine</text>
+  <text x="350" y="1680" fill="#555" font-size="13">local | cloud</text>
+  <text x="850" y="1680" fill="#888" font-size="13">Method picker dialog</text>
+
+  <rect x="70" y="1690" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="1710" fill="#333" font-size="13" font-weight="700">--model</text>
+  <text x="350" y="1710" fill="#555" font-size="13">tiny | base | small | medium | large-v2 | large-v3</text>
+  <text x="850" y="1710" fill="#888" font-size="13">large-v3</text>
+
+  <rect x="70" y="1720" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="1740" fill="#333" font-size="13" font-weight="700">--device</text>
+  <text x="350" y="1740" fill="#555" font-size="13">auto | cuda | cpu</text>
+  <text x="850" y="1740" fill="#888" font-size="13">auto</text>
+
+  <rect x="70" y="1750" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="1770" fill="#333" font-size="13" font-weight="700">--language</text>
+  <text x="350" y="1770" fill="#555" font-size="13">Language code (en, ru, ja, fr, etc.)</text>
+  <text x="850" y="1770" fill="#888" font-size="13">Auto-detect</text>
+
+  <rect x="70" y="1780" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="1800" fill="#333" font-size="13" font-weight="700">--max-duration</text>
+  <text x="350" y="1800" fill="#555" font-size="13">Split entries longer than N seconds (0=off)</text>
+  <text x="850" y="1800" fill="#888" font-size="13">6</text>
+
+  <rect x="70" y="1810" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="1830" fill="#333" font-size="13" font-weight="700">--no-translate</text>
+  <text x="350" y="1830" fill="#555" font-size="13">Skip automatic translation entirely</text>
+  <text x="850" y="1830" fill="#888" font-size="13">Off (translate)</text>
+
+  <rect x="70" y="1840" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="1860" fill="#333" font-size="13" font-weight="700">--target-language</text>
+  <text x="350" y="1860" fill="#555" font-size="13">Translate into this language (ignored with --no-translate)</text>
+  <text x="850" y="1860" fill="#888" font-size="13">en</text>
+
+  <rect x="70" y="1870" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="1890" fill="#333" font-size="13" font-weight="700">--credentials</text>
+  <text x="350" y="1890" fill="#555" font-size="13">Path to Google Cloud service account JSON (cloud only)</text>
+  <text x="850" y="1890" fill="#888" font-size="13">Env var</text>
+
+  <rect x="70" y="1900" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="1920" fill="#333" font-size="13" font-weight="700">--output / -o</text>
+  <text x="350" y="1920" fill="#555" font-size="13">Output SRT path (single-file mode only)</text>
+  <text x="850" y="1920" fill="#888" font-size="13">Same folder as input</text>
+
+  <rect x="70" y="1930" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="1950" fill="#333" font-size="13" font-weight="700">--overwrite</text>
+  <text x="350" y="1950" fill="#555" font-size="13">Re-process files that already have a .srt (folder mode only)</text>
+  <text x="850" y="1950" fill="#888" font-size="13">Off (skip)</text>
+
+  <!-- ===== MODEL COMPARISON ===== -->
+  <rect x="40" y="2000" width="1120" height="280" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="2035" fill="#1a73e8" font-size="20" font-weight="700">Whisper Model Comparison</text>
+  <text x="70" y="2060" fill="#666" font-size="13">Times are approximate for a 76-minute film on RTX 3060 Ti (GPU) / Intel CPU</text>
+
+  <rect x="70" y="2080" width="1060" height="35" rx="6" fill="#1a73e8"/>
+  <text x="100" y="2103" fill="#fff" font-size="14" font-weight="700">Model</text>
+  <text x="300" y="2103" fill="#fff" font-size="14" font-weight="700">Size</text>
+  <text x="500" y="2103" fill="#fff" font-size="14" font-weight="700">GPU Time</text>
+  <text x="700" y="2103" fill="#fff" font-size="14" font-weight="700">CPU Time</text>
+  <text x="900" y="2103" fill="#fff" font-size="14" font-weight="700">Accuracy</text>
+
+  <rect x="70" y="2115" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="2135" fill="#333" font-size="13">tiny</text>
+  <text x="300" y="2135" fill="#555" font-size="13">75 MB</text>
+  <text x="500" y="2135" fill="#555" font-size="13">&lt;1 min</text>
+  <text x="700" y="2135" fill="#555" font-size="13">~20 min</text>
+  <text x="900" y="2135" fill="#555" font-size="13">Low</text>
+
+  <rect x="70" y="2145" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="2165" fill="#333" font-size="13">base</text>
+  <text x="300" y="2165" fill="#555" font-size="13">150 MB</text>
+  <text x="500" y="2165" fill="#555" font-size="13">~1 min</text>
+  <text x="700" y="2165" fill="#555" font-size="13">~35 min</text>
+  <text x="900" y="2165" fill="#555" font-size="13">Good</text>
+
+  <rect x="70" y="2175" width="1060" height="30" fill="#f8f9fa"/>
+  <text x="100" y="2195" fill="#333" font-size="13">small</text>
+  <text x="300" y="2195" fill="#555" font-size="13">470 MB</text>
+  <text x="500" y="2195" fill="#555" font-size="13">~2 min</text>
+  <text x="700" y="2195" fill="#555" font-size="13">~60 min</text>
+  <text x="900" y="2195" fill="#555" font-size="13">Better</text>
+
+  <rect x="70" y="2205" width="1060" height="30" fill="#fff"/>
+  <text x="100" y="2225" fill="#333" font-size="13">medium</text>
+  <text x="300" y="2225" fill="#555" font-size="13">1.5 GB</text>
+  <text x="500" y="2225" fill="#555" font-size="13">~3 min</text>
+  <text x="700" y="2225" fill="#555" font-size="13">~2 hrs</text>
+  <text x="900" y="2225" fill="#555" font-size="13">High</text>
+
+  <rect x="70" y="2235" width="1060" height="30" fill="#e8f5e9"/>
+  <text x="100" y="2255" fill="#1e8e3e" font-size="13" font-weight="700">large-v3</text>
+  <text x="300" y="2255" fill="#1e8e3e" font-size="13">3 GB</text>
+  <text x="500" y="2255" fill="#1e8e3e" font-size="13">~2-5 min</text>
+  <text x="700" y="2255" fill="#1e8e3e" font-size="13">~4 hrs</text>
+  <text x="900" y="2255" fill="#1e8e3e" font-size="13">Highest (default)</text>
+
+  <!-- ===== PREREQUISITES ===== -->
+  <rect x="40" y="2310" width="1120" height="200" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="2345" fill="#1a73e8" font-size="20" font-weight="700">Prerequisites</text>
+
+  <rect x="70" y="2365" width="340" height="125" rx="8" fill="#fff3e0" stroke="#ff6d00" stroke-width="1"/>
+  <text x="240" y="2390" text-anchor="middle" fill="#bf360c" font-size="16" font-weight="700">Python 3.9+</text>
+  <text x="240" y="2415" text-anchor="middle" fill="#555" font-size="12">Download from python.org</text>
+  <text x="240" y="2435" text-anchor="middle" fill="#555" font-size="12">Check "Add Python to PATH"</text>
+  <text x="240" y="2455" text-anchor="middle" fill="#555" font-size="12">Verify: python --version</text>
+  <text x="240" y="2475" text-anchor="middle" fill="#888" font-size="11">Already installed</text>
+
+  <rect x="430" y="2365" width="340" height="125" rx="8" fill="#e3f2fd" stroke="#1a73e8" stroke-width="1"/>
+  <text x="600" y="2390" text-anchor="middle" fill="#0d47a1" font-size="16" font-weight="700">FFmpeg</text>
+  <text x="600" y="2415" text-anchor="middle" fill="#555" font-size="12">Download from ffmpeg.org</text>
+  <text x="600" y="2435" text-anchor="middle" fill="#555" font-size="12">Extract to C:\ffmpeg</text>
+  <text x="600" y="2455" text-anchor="middle" fill="#555" font-size="12">Add C:\ffmpeg\bin to PATH</text>
+  <text x="600" y="2475" text-anchor="middle" fill="#888" font-size="11">Verify: ffmpeg -version</text>
+
+  <rect x="790" y="2365" width="340" height="125" rx="8" fill="#e8f5e9" stroke="#0f9d58" stroke-width="1"/>
+  <text x="960" y="2390" text-anchor="middle" fill="#1e8e3e" font-size="16" font-weight="700">Python Packages</text>
+  <text x="960" y="2415" text-anchor="middle" fill="#555" font-size="12">Activate venv:</text>
+  <text x="960" y="2435" text-anchor="middle" fill="#333" font-size="11" font-family="Consolas, monospace">venv\Scripts\activate</text>
+  <text x="960" y="2455" text-anchor="middle" fill="#555" font-size="12">Then install:</text>
+  <text x="960" y="2475" text-anchor="middle" fill="#333" font-size="11" font-family="Consolas, monospace">pip install -r requirements.txt</text>
+
+  <!-- ===== TROUBLESHOOTING ===== -->
+  <rect x="40" y="2540" width="1120" height="340" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="2575" fill="#1a73e8" font-size="20" font-weight="700">Troubleshooting</text>
+
+  <rect x="70" y="2595" width="1060" height="35" rx="6" fill="#fce4ec"/>
+  <text x="90" y="2618" fill="#c62828" font-size="13" font-weight="700">"FFmpeg not found"</text>
+  <text x="400" y="2618" fill="#555" font-size="13">FFmpeg is not on your PATH. Install from ffmpeg.org and add to system PATH.</text>
+
+  <rect x="70" y="2635" width="1060" height="35" rx="6" fill="#fff3e0"/>
+  <text x="90" y="2658" fill="#e65100" font-size="13" font-weight="700">"faster-whisper is not installed"</text>
+  <text x="400" y="2658" fill="#555" font-size="13">Activate venv first, then run: pip install faster-whisper</text>
+
+  <rect x="70" y="2675" width="1060" height="35" rx="6" fill="#e3f2fd"/>
+  <text x="90" y="2698" fill="#0d47a1" font-size="13" font-weight="700">"No speech detected"</text>
+  <text x="400" y="2698" fill="#555" font-size="13">Audio may be music-only or very low volume. Check the file in a media player.</text>
+
+  <rect x="70" y="2715" width="1060" height="35" rx="6" fill="#fce4ec"/>
+  <text x="90" y="2738" fill="#c62828" font-size="13" font-weight="700">Cloud: "403 Permission Denied"</text>
+  <text x="400" y="2738" fill="#555" font-size="13">Billing not enabled on Google Cloud project. Enable in Google Cloud Console.</text>
+
+  <rect x="70" y="2755" width="1060" height="35" rx="6" fill="#fff3e0"/>
+  <text x="90" y="2778" fill="#e65100" font-size="13" font-weight="700">Cloud: "401 Unauthenticated"</text>
+  <text x="400" y="2778" fill="#555" font-size="13">Service account key may be revoked. Check in IAM - Service Accounts.</text>
+
+  <rect x="70" y="2795" width="1060" height="35" rx="6" fill="#e3f2fd"/>
+  <text x="90" y="2818" fill="#0d47a1" font-size="13" font-weight="700">Poor quality - garbage text</text>
+  <text x="400" y="2818" fill="#555" font-size="13">Whisper hallucination on music/silence. Fixed via VAD filter (built-in).</text>
+
+  <rect x="70" y="2835" width="1060" height="35" rx="6" fill="#fce4ec"/>
+  <text x="90" y="2858" fill="#c62828" font-size="13" font-weight="700">Running from wrong environment</text>
+  <text x="400" y="2858" fill="#555" font-size="13">Use vdo2srt.bat which handles venv automatically, or activate venv first.</text>
+
+  <!-- ===== FOOTER ===== -->
+  <rect x="0" y="2910" width="1200" height="380" fill="#1a73e8"/>
+  <text x="600" y="2950" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">Need Help?</text>
+  <text x="600" y="2985" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="14">Open an issue on GitHub: https://github.com/SaksiriK/Gen-SRT-from-video</text>
+  <text x="600" y="3015" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="14">Or check the detailed technical documentation in docs/technical.md</text>
+  <text x="600" y="3060" text-anchor="middle" fill="#ffffff" fill-opacity="0.6" font-size="12">vdo2srt v2.0.0 - Built with faster-whisper, Google Cloud STT, and deep-translator</text>
+  <text x="600" y="3085" text-anchor="middle" fill="#ffffff" fill-opacity="0.47" font-size="11">2026 - Open Source</text>
+</svg>

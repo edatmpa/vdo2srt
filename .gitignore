@@ -1,8 +1,30 @@
-venv/
-video/
+# Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.sublime-workspace
+
+# Environment
 .env
+
+# Generated / temporary files
 *.wav
 *.srt
+*.mp3
+video/
+
+# Session transcripts (AI chat logs)
+.claude/
