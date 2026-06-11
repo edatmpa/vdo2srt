@@ -6,6 +6,12 @@ Usage:  python vdo2srt.py <file_or_folder> [options]
         Double-click vdo2srt.bat for the GUI mode.
 """
 
+import os
+
+# Suppress OpenMP duplicate-library warning (common with faster-whisper + numpy).
+# Must be set before any module that loads libiomp5md.dll is imported.
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 import sys
 from pathlib import Path
 

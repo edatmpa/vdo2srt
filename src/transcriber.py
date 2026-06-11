@@ -10,6 +10,9 @@ import math
 import os
 from pathlib import Path
 
+# Suppress OpenMP duplicate-library warning (faster-whisper + numpy conflict).
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
 from src.extractor import extract_chunk, get_duration
 from tqdm import tqdm
 
