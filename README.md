@@ -30,7 +30,7 @@ Convert video/audio files to SRT subtitle files using **faster-whisper** (local 
 
 ```bash
 # Clone the repository
-git clone https://github.com/mappointasia/vdo2srt.git
+git clone https://github.com/SaksiriK/create-EN-SRT-from-video-sound-track.git
 cd vdo2srt
 
 # Create a virtual environment (recommended)
@@ -160,22 +160,26 @@ vdo2srt "movie.mkv" --engine local --language ru
 
 ```
 vdo2srt/
-├── vdo2srt.py          # Entry point
-├── vdo2srt.bat         # Windows launcher
-├── pyproject.toml       # Python packaging
+├── vdo2srt.py           # Thin entry point — delegates to src/cli.py
+├── vdo2srt.bat          # Windows launcher
+├── pyproject.toml       # Python packaging (pip install .)
 ├── requirements.txt     # Pip dependencies
+├── .env.example         # Credentials env var template
+├── test_google_apis.py  # Google Cloud API smoke test
 ├── src/
+│   ├── __init__.py     # Package marker, version string
+│   ├── __main__.py     # python -m src entry point
 │   ├── cli.py          # Argument parsing & orchestration
 │   ├── extractor.py    # FFmpeg audio extraction
 │   ├── transcriber.py  # Whisper & Google STT engines
 │   ├── translator.py   # Google Translate integration
 │   ├── srt_writer.py   # SRT formatting
 │   ├── gui.py          # Tkinter GUI dialogs
-│   └── utils.py        # File utilities
+│   └── utils.py        # Shared constants & file utilities
 ├── docs/
-│   ├── technical.md    # Architecture & decisions
+│   ├── technical.md    # Architecture & module reference
 │   ├── user_manual.md  # Detailed user guide
-│   └── user_manual.svg # GUI workflow diagram
+│   └── user_manual.svg # Visual workflow diagram
 └── LICENSE
 ```
 

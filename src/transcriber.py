@@ -56,7 +56,7 @@ class LocalTranscriber:
             try:
                 from faster_whisper import WhisperModel
             except ImportError:
-                raise EnvironmentError(
+                raise OSError(
                     "faster-whisper is not installed. Run:  pip install faster-whisper"
                 )
             resolved = self._resolve_device()
@@ -149,7 +149,7 @@ class CloudTranscriber:
             from google.cloud import speech
             from google.oauth2 import service_account
         except ImportError:
-            raise EnvironmentError(
+            raise OSError(
                 "Google Cloud Speech library not installed. Run:\n"
                 "  pip install google-cloud-speech"
             )
@@ -272,7 +272,7 @@ def split_segments(segments: list[dict], max_duration: float) -> list[dict]:
 # Factory
 # ---------------------------------------------------------------------------
 
-def get_transcriber(engine: str, model: str, language: str | None, credentials: str | None, device: str = "auto", max_duration: float | None = None):
+def get_transcriber(engine: str, model: str, language: str | None, credentials: str | None, device: str = "auto", max_duration: float | None = None) -> LocalTranscriber | CloudTranscriber:
     """Return the appropriate transcriber based on user choice."""
     if engine == "local":
         return LocalTranscriber(model=model, language=language, device=device, max_duration=max_duration)

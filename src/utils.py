@@ -1,24 +1,33 @@
 """
-Shared constants and utility functions used across the vdo2srt package.
+Utility functions for vdo2srt.
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Supported media file extensions
-# ---------------------------------------------------------------------------
-
-SUPPORTED_EXTENSIONS = {
-    ".mp4", ".mkv", ".avi", ".mov", ".wmv", ".m4v",
-    ".mp3", ".wav", ".m4a", ".flac", ".ogg",
+_MEDIA_EXTENSIONS = {
+    '.mp4', '.mkv', '.avi', '.mov', '.flv', '.wmv', '.webm', '.m4v',
+    '.mp3', '.wav', '.aac', '.flac', '.m4a', '.wma', '.ogg', '.opus',
 }
 
 
-def is_media_file(path: Path) -> bool:
-    """Return True if *path* has a supported media extension (case-insensitive)."""
-    return path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
-
-
 def find_media_files(folder: Path) -> list[Path]:
-    """Return sorted list of supported media files inside *folder*."""
-    return sorted(f for f in folder.iterdir() if is_media_file(f))
+    """
+    Find all supported media files in a folder (non-recursive).
+    
+    Args:
+        folder: Directory to search
+        
+    Returns:
+        List of media file paths, sorted by name
+    """
+    if not folder.is_dir():
+        return []
+    
+    media_files = [
+        f for f in folder.iterdir()
+        if f.is_file() and f.suffix.lower() in _MEDIA_EXTENSIONS
+    ]
+    
+    return sorted(media_files, key=lambda p: p.name)

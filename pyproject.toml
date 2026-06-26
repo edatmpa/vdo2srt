@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "vdo2srt"
@@ -11,7 +11,7 @@ readme = "README.md"
 license = {text = "MIT"}
 keywords = ["subtitle", "srt", "whisper", "transcription", "speech-to-text"]
 authors = [
-    {name = "mappointasia"},
+    {name = "SaksiriK"},
 ]
 
 classifiers = [
@@ -40,8 +40,8 @@ cloud = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mappointasia/vdo2srt"
-Repository = "https://github.com/mappointasia/vdo2srt"
+Homepage = "https://github.com/SaksiriK/create-EN-SRT-from-video-sound-track"
+Repository = "https://github.com/SaksiriK/create-EN-SRT-from-video-sound-track"
 
 [project.scripts]
 vdo2srt = "src.cli:main"

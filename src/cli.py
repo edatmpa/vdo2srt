@@ -14,6 +14,7 @@ from pathlib import Path
 from src.extractor import extract_audio
 from src.transcriber import get_transcriber
 from src.srt_writer import write_srt
+from src.srt_reader import read_srt
 from src.translator import translate_segments
 from src.utils import find_media_files
 from src.gui import make_root, pick_target_type, pick_file, pick_folder, pick_method
@@ -111,7 +112,7 @@ def process_file(
     """Transcribe one file and write SRT(s). Returns True on success."""
     try:
         audio_path = extract_audio(input_path)
-    except (EnvironmentError, RuntimeError) as e:
+    except (OSError, RuntimeError) as e:
         print(f"  Audio extraction failed: {e}")
         return False
 
@@ -129,11 +130,43 @@ def process_file(
 
     if translate:
         try:
-            translated = translate_segments(segments, target_lang=target_lang)
             translated_path = output_path.parent / f"{output_path.stem}.{target_lang}.srt"
+            translated = translate_segments(segments, target_lang=target_lang)
             write_srt(translated, translated_path)
         except Exception as e:
             print(f"  Translation failed: {e}")
+
+    return True
+
+
+def translate_existing_srt(
+    srt_path: Path,
+    target_lang: str,
+) -> bool:
+    """Load existing SRT and translate it. Returns True on success."""
+    # Check if translated file already exists
+    translated_path = srt_path.parent / f"{srt_path.stem}.{target_lang}.srt"
+    if translated_path.exists():
+        print(f"  Translation already exists: {translated_path.name}. Skipping.")
+        return True
+    
+    try:
+        segments = read_srt(srt_path)
+    except Exception as e:
+        print(f"  Failed to read SRT: {e}")
+        return False
+
+    if not segments:
+        print("  SRT file is empty, skipping translation.")
+        return False
+
+    try:
+        translated = translate_segments(segments, target_lang=target_lang)
+        count = write_srt(translated, translated_path)
+        print(f"  {count} entries translated to {target_lang}.")
+    except Exception as e:
+        print(f"  Translation failed: {e}")
+        return False
 
     return True
 
@@ -182,7 +215,7 @@ def main(argv: list[str] | None = None) -> None:
             device=device,
             max_duration=max_dur,
         )
-    except (EnvironmentError, ValueError, FileNotFoundError) as e:
+    except (OSError, ValueError, FileNotFoundError) as e:
         print(f"Failed to initialise transcriber:\n  {e}")
         sys.exit(1)
 
@@ -214,35 +247,51 @@ def main(argv: list[str] | None = None) -> None:
         print(f"No supported media files found in: {input_path}")
         sys.exit(0)
 
-    to_process = [f for f in all_files if args.overwrite or not f.with_suffix(".srt").exists()]
-    skipped = len(all_files) - len(to_process)
+    # Separate files into two groups: need transcription vs. need translation-only
+    to_transcribe = [f for f in all_files if args.overwrite or not f.with_suffix(".srt").exists()]
+    to_translate_only = [f for f in all_files if not args.overwrite and f.with_suffix(".srt").exists()]
 
     print(f"\nvdo2srt batch")
     print(f"  Folder   : {input_path}")
     print(f"  Engine   : {engine}" + (f" ({args.model}, device={device})" if engine == "local" else ""))
     print(f"  Language : {args.language or 'auto-detect'}")
     print(f"  Translate: {'yes → ' + args.target_language if translate else 'no (--no-translate)'}")
-    print(f"  Files    : {len(to_process)} to process, {skipped} skipped (SRT exists)\n")
+    print(f"  Files    : {len(to_transcribe)} to process, {len(to_translate_only)} to translate (SRT exists)\n")
 
-    if not to_process:
+    if not to_transcribe and not to_translate_only:
+        print("No files to process or translate.")
+        sys.exit(0)
+
+    if not to_transcribe and not translate:
         print("All files already have SRT files. Use --overwrite to re-process.")
         sys.exit(0)
 
     succeeded = 0
     failed = 0
 
-    for idx, file_path in enumerate(to_process, 1):
+    # Process transcription
+    for idx, file_path in enumerate(to_transcribe, 1):
         output_path = file_path.with_suffix(".srt")
-        print(f"[{idx}/{len(to_process)}] {file_path.name}")
+        print(f"[{idx}/{len(to_transcribe)}] {file_path.name} (transcribing)")
         if process_file(file_path, output_path, transcriber, translate, args.target_language):
             succeeded += 1
         else:
             failed += 1
         print()
 
-    print(f"Batch complete: {succeeded} succeeded, {failed} failed, {skipped} skipped.")
+    # Process translation-only for existing SRT files
+    if translate and to_translate_only:
+        for idx, file_path in enumerate(to_translate_only, 1):
+            srt_path = file_path.with_suffix(".srt")
+            print(f"[{len(to_transcribe) + idx}/{len(to_transcribe) + len(to_translate_only)}] {file_path.name} (translating)")
+            if translate_existing_srt(srt_path, args.target_language):
+                succeeded += 1
+            else:
+                failed += 1
+            print()
+
+    print(f"Batch complete: {succeeded} succeeded, {failed} failed.")
 
 
 if __name__ == "__main__":
     main()
-

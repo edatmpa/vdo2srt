@@ -53,7 +53,7 @@ def extract_audio(input_path: Path) -> Path:
     Returns path to a 16kHz mono WAV in the system temp directory.
     """
     if not check_ffmpeg():
-        raise EnvironmentError(
+        raise OSError(
             "FFmpeg not found. Install from https://ffmpeg.org/download.html "
             "and ensure it is on your system PATH."
         )
