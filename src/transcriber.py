@@ -40,15 +40,21 @@ class LocalTranscriber:
         self.max_duration = max_duration
         self._model = None
 
-    def _resolve_device(self) -> str:
-        if self.device != "auto":
-            return self.device
+    @staticmethod
+    def _cuda_available() -> bool:
         try:
             import ctranslate2
-            if "float16" in ctranslate2.get_supported_compute_types("cuda"):
-                return "cuda"
+            return "float16" in ctranslate2.get_supported_compute_types("cuda")
         except Exception:
-            pass
+            return False
+
+    def _resolve_device(self) -> str:
+        if self.device == "cpu":
+            return "cpu"
+        if self._cuda_available():
+            return "cuda"
+        if self.device == "cuda":  # asked for GPU on a PC without a usable NVIDIA GPU: don't crash the run
+            print("  No usable NVIDIA GPU (CUDA) on this PC - using the CPU instead (slower).")
         return "cpu"
 
     def _load(self):

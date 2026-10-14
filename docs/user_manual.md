@@ -29,7 +29,7 @@ FFmpeg extracts the audio track from your video file.
 ### 3. Install Python packages
 Activate the project virtual environment first, then install:
 ```
-E:\vdo2srt\venv\Scripts\activate
+"E:\Plex Utility\vdo2srt\venv\Scripts\activate"
 pip install -r requirements.txt
 ```
 
@@ -50,7 +50,7 @@ Double-click `vdo2srt.bat` or run it with no arguments. Two dialogs appear in se
    - **Google Cloud** (accurate, requires internet and credentials)
 
 ```
-E:\vdo2srt\vdo2srt.bat
+"E:\Plex Utility\vdo2srt\vdo2srt.bat"
 ```
 
 > **Note:** The file picker dialog may appear behind other windows — check the taskbar if nothing seems to happen.  
@@ -59,18 +59,18 @@ E:\vdo2srt\vdo2srt.bat
 ### Option B — Command line
 Pass the file and options directly. Useful for scripting or batch processing.
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\my_movie.mp4" --engine local --language ru
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\my_movie.mp4" --engine local --language ru
 ```
 
 ### Option C — Direct Python (venv must be active)
 ```
-E:\vdo2srt\venv\Scripts\activate
+"E:\Plex Utility\vdo2srt\venv\Scripts\activate"
 python vdo2srt.py "E:\Movies\my_movie.mp4"
 ```
 
 ### Option D — Module entry point
 ```
-E:\vdo2srt\venv\Scripts\activate
+"E:\Plex Utility\vdo2srt\venv\Scripts\activate"
 python -m src "E:\Movies\my_movie.mp4" --engine local
 ```
 
@@ -84,40 +84,105 @@ python -m src "E:\Movies\my_movie.mp4" --engine local
 
 ### Transcribe a movie via GUI (no typing required)
 ```
-E:\vdo2srt\vdo2srt.bat
+"E:\Plex Utility\vdo2srt\vdo2srt.bat"
 ```
 Pick the file and method in the dialogs. Output SRT is written to the same folder as the video.
 
 ### Transcribe a Russian movie (command line)
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\russian_movie.avi" --engine local --language ru
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\russian_movie.avi" --engine local --language ru
 ```
 
 ### Force GPU with a specific model
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\my_movie.mp4" --engine local --device cuda --model large-v3
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\my_movie.mp4" --engine local --device cuda --model large-v3
 ```
 
 ### Save the SRT to a specific location
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\my_movie.mp4" --output "E:\Subtitles\movie_subtitles.srt"
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\my_movie.mp4" --output "E:\Subtitles\movie_subtitles.srt"
 ```
 
 ### Batch process an entire folder
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies" --engine local --language ru
 ```
-All supported video/audio files in the folder are processed. Each gets its own `.srt` (and `.en.srt`) next to the original. Files that already have a `.srt` are skipped unless you add `--overwrite`.
+All supported video/audio files in the folder are processed. Each gets its own `.srt` (and `.en.srt`) next to the original.
+
+Files that already have a `.srt` are **not** re-transcribed — voice-to-text never runs again on them — but they *are* still checked for translation: if the `.en.srt` is missing, it gets translated from the existing `.srt`. Any leftover `.srt` with no matching video at all (the video was moved or deleted after transcription) is picked up the same way. Add `--overwrite` to force a full re-transcribe of everything (and retranslate/replace existing `.en.srt` files too — the previous translation is backed up to `.bak` first).
 
 ### Skip the English translation
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --no-translate
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\film.mkv" --engine local --language ru --no-translate
 ```
 
 ### Translate to a language other than English
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --target-language fr
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\film.mkv" --engine local --language ru --target-language fr
 ```
+
+---
+
+## Batch Processing Many Folders (process_list)
+
+Use `process_list.bat` when you have a whole list of folders to process — e.g. a "no subs" export from your own library-scanning tooling (that list's generation is your own tool; `process_list.py` just consumes it).
+
+The list file is plain text, one folder path per line (optionally numbered, e.g. from a numbered export):
+```
+1. V:\Korean\Movie Title (2022) 1080p
+2. V:\Korean\Another Movie (2023)
+```
+Hidden folders and known non-movie folder names (`Extras`, `Featurettes`, `Behind the Scenes`, etc.) are skipped automatically.
+
+```
+"E:\Plex Utility\vdo2srt\process_list.bat" "E:\no_subs.txt" --engine local --language ru
+```
+
+Per folder, this behaves exactly like `vdo2srt.bat`'s folder mode: videos with no `.srt` yet get transcribed; videos that already have a `.srt` are translated only (voice-to-text never re-runs); any leftover `.srt` with no matching video is translated too. `--overwrite` forces a full re-transcribe and retranslates/replaces existing `.en.srt` files (backed up to `.bak` first).
+
+No arguments opens a GUI picker for the list file, same as `vdo2srt.bat`.
+
+---
+
+## Translating Existing Subtitles Only (translate_srt)
+
+Use `translate_srt.bat` when the `.srt` files already exist (in the original language) and you just want a translation — no video, no transcription involved at all. This is also the tool to use to **retranslate** subtitles that already have a weaker translation, now that DeepL is available for several languages.
+
+```
+:: Single file
+"E:\Plex Utility\vdo2srt\translate_srt.bat" "movie.srt"
+
+:: One folder
+"E:\Plex Utility\vdo2srt\translate_srt.bat" "V:\Korean\Movie Title (2022)"
+
+:: A whole library — root -> movie/show folders -> files (one level, not arbitrary depth)
+"E:\Plex Utility\vdo2srt\translate_srt.bat" "V:\War Series (Russia)" --recursive
+
+:: Retranslate and replace existing translations across that library
+"E:\Plex Utility\vdo2srt\translate_srt.bat" "V:\War Series (Russia)" --recursive --overwrite
+```
+
+By default, an `.srt` whose `.en.srt` (or other `--target-language`) already exists is skipped. `--overwrite` retranslates and replaces it — the previous translation is backed up to `<name>.srt.bak` first, so nothing is lost if the new translation turns out worse.
+
+No arguments opens a GUI picker (single file or folder — `--recursive` must be passed on the command line, there's no picker option for it).
+
+---
+
+## Choosing a Translation Engine
+
+Which engine translates a file is chosen **automatically**, based on the subtitle's own text — not on `--language` or Whisper's guess. This matters most for `process_list.bat`/`translate_srt.bat`, where an existing `.srt` may carry no language information at all.
+
+- The source language is **detected from the subtitle text itself**.
+- `translate_routing.txt` (in the project root) maps a detected language to an engine and a key file:
+  ```
+  ko    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
+  ja    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
+  zh    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
+  ru    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
+  ```
+- Any language **not** listed there automatically uses a free, keyless fallback engine (Google Translate via `deep-translator`) — nothing to configure.
+- **To route a new language to DeepL (or move one to a different key), just add/edit a line in `translate_routing.txt`.** No code change needed.
+- If a routed key file is missing, empty, or the `deepl` package isn't installed, the tool prints a note and falls back to the free engine automatically rather than failing the whole run.
 
 ---
 
@@ -156,7 +221,7 @@ E:\API Key\Google API Keys\speech2txt.json
 
 ### Run with the cloud engine
 ```
-E:\vdo2srt\vdo2srt.bat "E:\Movies\my_movie.mp4" --engine cloud --language ru --credentials "E:\API Key\Google API Keys\speech2txt.json"
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\my_movie.mp4" --engine cloud --language ru --credentials "E:\API Key\Google API Keys\speech2txt.json"
 ```
 
 Or just run with no arguments and pick **Google Cloud** in the method dialog —
@@ -189,20 +254,31 @@ Open a new terminal after running this. Then credentials are picked up automatic
 
 ## All Options
 
+### `vdo2srt.py` / `process_list.py`
+
 | Option | Description | Default |
 |---|---|---|
-| `input` | Video or audio file or folder to process. Omit to open a file picker. | *(file picker)* |
+| `input` / `list_file` | Video/audio file, folder, or (`process_list.py`) a folder-list `.txt`. Omit to open a picker. | *(picker)* |
 | `--engine local` | Use local Whisper — works offline, uses GPU if available | *(method picker)* |
 | `--engine cloud` | Use Google Cloud Speech-to-Text | |
 | `--device` | `auto` / `cuda` / `cpu` — GPU device for local engine | auto |
 | `--model` | Whisper model: tiny / base / small / medium / large-v2 / large-v3 | large-v3 |
 | `--language` | Language code (e.g. en, ja, ru). Local auto-detects if omitted. | auto-detect |
 | `--max-duration` | Split entries longer than N seconds at word boundaries. Pass `0` to disable. | 6 |
-| `--no-translate` | Skip the automatic English translation | off (translate) |
+| `--no-translate` | Skip the automatic translation | off (translate) |
 | `--target-language` | Translate into this language instead of English | en |
 | `--credentials` | Path to Google service account JSON | env var |
-| `--output` / `-o` | Output SRT file path (single-file mode only) | same folder as input |
-| `--overwrite` | (Folder mode) Re-process files that already have a `.srt` | off |
+| `--output` / `-o` | Output SRT file path (`vdo2srt.py` single-file mode only) | same folder as input |
+| `--overwrite` | Re-transcribe files that already have a `.srt`, **and** retranslate/replace existing `.en.srt` (backed up to `.bak` first) | off |
+
+### `translate_srt.py`
+
+| Option | Description | Default |
+|---|---|---|
+| `input` | A `.srt` file, a folder, or (with `--recursive`) a library root. Omit to open a picker. | *(picker)* |
+| `--recursive` | Treat `input` as a library root and scan each immediate subfolder (movie/show folders) | off |
+| `--target-language` | Language to translate into | en |
+| `--overwrite` | Retranslate and replace existing translations (backed up to `.bak` first) | off |
 
 ---
 
@@ -232,13 +308,13 @@ cut points — it never cuts mid-word, and prefers cutting between phrases.
 ### Adjust the threshold
 ```
 # Tighter — better for fast dialogue
-E:\vdo2srt\vdo2srt.bat "movie.mp4" --engine local --max-duration 4
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "movie.mp4" --engine local --max-duration 4
 
 # Looser — better for slow narration / monologues
-E:\vdo2srt\vdo2srt.bat "movie.mp4" --engine local --max-duration 9
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "movie.mp4" --engine local --max-duration 9
 
 # Disable splitting entirely — raw Whisper segments
-E:\vdo2srt\vdo2srt.bat "movie.mp4" --engine local --max-duration 0
+"E:\Plex Utility\vdo2srt\vdo2srt.bat" "movie.mp4" --engine local --max-duration 0
 ```
 
 Splitting applies to the **local engine only**. The cloud engine (Google STT) returns
@@ -262,11 +338,11 @@ its own segment boundaries and is not affected by `--max-duration`.
 FFmpeg is not on your PATH. See the FFmpeg installation steps above.
 
 **"faster-whisper is not installed"**  
-Activate the venv first (`E:\vdo2srt\venv\Scripts\activate`) then run `pip install faster-whisper`.
+Activate the venv first (`"E:\Plex Utility\vdo2srt\venv\Scripts\activate"`) then run `pip install faster-whisper`.
 
 **Running from wrong environment (packages not found)**  
 Your prompt shows `(base)` instead of `(venv)`. Use `vdo2srt.bat` which handles this automatically,
-or run `E:\vdo2srt\venv\Scripts\activate` before using `python vdo2srt.py`.
+or run `"E:\Plex Utility\vdo2srt\venv\Scripts\activate"` before using `python vdo2srt.py`.
 
 **"No speech detected"**  
 The audio may be music-only or very low volume. Try opening it in a media player to confirm.
@@ -291,3 +367,12 @@ The default `large-v3` model is already the most accurate. Try the cloud engine 
 **Poor subtitle timing (text appears at wrong time)**  
 The transcript is correct but timing is off. Open in SubtitleEdit and use the waveform
 to adjust individual entries.
+
+**"deepl is not installed" / "deep-translator is not installed" / "langdetect is not installed"**  
+Activate the venv, then `pip install -r requirements.txt` — these are all in the core requirements now.
+
+**Translation used the free engine when I expected DeepL**  
+Check `translate_routing.txt` — the detected source language must be listed there to route to DeepL. If it's listed but still fell back, the console prints why (missing/empty key file, or `deepl` not installed) right before the translation runs.
+
+**I want to redo an old translation with DeepL instead of the original engine**  
+Run `translate_srt.bat` on the file/folder/library with `--overwrite`. The previous `.en.srt` is backed up to `.en.srt.bak` before being replaced, so nothing is lost.

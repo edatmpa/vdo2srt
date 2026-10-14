@@ -9,37 +9,42 @@ Convert video/audio files to SRT subtitle files using **faster-whisper** (local 
 
 ## Features
 
-- 🎯 **Two engines**: Local Whisper (offline, free) or Google Cloud STT (cloud, accurate)
+- 🎯 **Two transcription engines**: Local Whisper (offline, free) or Google Cloud STT (cloud, accurate)
 - 🚀 **GPU acceleration**: Auto-detects CUDA — falls back to CPU
 - 🌍 **Multi-language**: Auto-detect or specify language (en, ru, ja, th, fr, de, etc.)
-- 🔄 **Auto-translate**: Produces an English `.en.srt` file automatically (no API key needed)
-- 📁 **Batch mode**: Process an entire folder of videos in one go
-- 🖥️ **GUI dialogs**: Double-click the `.bat` file for a point-and-click interface
+- 🔄 **Auto-translate**: Produces an English `.en.srt` file automatically
+- 🧭 **Routed translation engine**: DeepL for `ko`/`ja`/`zh`/`ru` (per `translate_routing.txt`), free Google fallback for everything else — source language is detected from the actual subtitle text, and the routing is a one-line text-file edit away from adding a new language or engine
+- 📁 **Batch mode**: Process an entire folder of videos in one go, or every folder listed in a text file (`process_list.py`)
+- 📝 **Translate-only tool**: `translate_srt.py` retranslates/replaces existing `.srt` files with no video or transcription involved — single file, one folder, or a whole library root
+- 🖥️ **GUI dialogs**: Double-click a `.bat` file for a point-and-click interface
 - ✂️ **Smart splitting**: Splits long subtitle entries at word boundaries
 - ↔️ **Custom target languages**: Translate to any language
+- 🛡️ **Safe overwrite**: Retranslating an existing `.en.srt` backs up the previous version to `.bak` first
 
 ## Quick Start (Windows)
 
 ### Prerequisites
 
-1. Install [Python 3.9+](https://www.python.org/downloads/) (check "Add Python to PATH")
-2. Install [FFmpeg](https://ffmpeg.org/download.html) and add it to your system PATH
-3. (Optional) NVIDIA GPU with [CUDA](https://developer.nvidia.com/cuda-downloads) for GPU acceleration
+1. Install [Python 3.10+](https://www.python.org/downloads/) (check "Add Python to PATH")
+2. (Optional) NVIDIA GPU for fast local transcription. Without one, the CPU is used automatically.
 
 ### Installation
 
+Clone or download the repository, then **double-click `setup.bat`**. It:
+- builds the Python environment (`venv`) for *this* PC and installs `requirements.txt`
+  (a venv copied from another PC never works; setup renames it to `venv_old_<date>`)
+- installs the NVIDIA CUDA libraries (`requirements-gpu.txt`) only if an NVIDIA GPU is present
+- checks FFmpeg and offers to install it with winget
+
+Run `setup.bat` again whenever a launcher says the venv is missing or broken.
+
 ```bash
-# Clone the repository
 git clone https://github.com/SaksiriK/create-EN-SRT-from-video-sound-track.git
-cd vdo2srt
-
-# Create a virtual environment (recommended)
-python -m venv venv
-venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
 ```
+
+> **Windows Smart App Control:** if it is on, Windows blocks unsigned program files it doesn't know
+> ("An Application Control policy has blocked this file"). `requirements.txt` pins `ctranslate2==4.8.1`,
+> a version Windows allows. Don't upgrade it without testing that `import ctranslate2` still works.
 
 ### Usage — GUI Mode
 
@@ -82,8 +87,20 @@ vdo2srt.bat "E:\Movies\film.mkv" --engine local -o "E:\Subtitles\film.srt"
 :: Tighter subtitle splitting (4 seconds)
 vdo2srt.bat "E:\Movies\film.mkv" --engine local --max-duration 4
 
-:: Re-process files that already have an .srt
+:: Re-process files that already have an .srt (also retranslates existing .en.srt, backed up first)
 vdo2srt.bat "E:\Movies" --engine local --overwrite
+
+:: Batch across many folders listed in a text file
+process_list.bat "E:\no_subs.txt" --engine local --language ru
+
+:: Translate existing .srt files only (no video/transcription) — one folder
+translate_srt.bat "V:\Korean\Movie Title (2022)"
+
+:: Translate existing .srt files across a whole library (root -> movie folders)
+translate_srt.bat "V:\War Series (Russia)" --recursive
+
+:: Retranslate and replace existing translations across that library
+translate_srt.bat "V:\War Series (Russia)" --recursive --overwrite
 ```
 
 ## Defaults
@@ -98,6 +115,7 @@ vdo2srt.bat "E:\Movies" --engine local --overwrite
 | Output location | Same folder as video, `.srt` extension |
 | Translation | ON — always produces `.en.srt` (use `--no-translate` to skip) |
 | Target language | `en` (English) |
+| Translation engine | Auto-routed per detected source language — see `translate_routing.txt` |
 
 ## Options
 
@@ -128,7 +146,9 @@ options:
 ### Core (always needed)
 - [faster-whisper](https://github.com/SYSTRAN/faster-whisper) — Whisper transcription with CTranslate2
 - [tqdm](https://github.com/tqdm/tqdm) — Progress bars
-- [deep-translator](https://github.com/nidhaloff/deep-translator) — Google Translate (no API key)
+- [deepl](https://github.com/DeepLcom/deepl-python) — DeepL translation engine, routed per `translate_routing.txt`
+- [deep-translator](https://github.com/nidhaloff/deep-translator) — Google Translate, free fallback engine (no API key)
+- [langdetect](https://github.com/Mimino666/langdetect) — source-language detection for translation routing
 
 ### Cloud engine (optional)
 - `google-cloud-speech`
@@ -160,8 +180,13 @@ vdo2srt "movie.mkv" --engine local --language ru
 
 ```
 vdo2srt/
-├── vdo2srt.py           # Thin entry point — delegates to src/cli.py
-├── vdo2srt.bat          # Windows launcher
+├── vdo2srt.py           # Single file / one folder — delegates to src/cli.py
+├── vdo2srt.bat          # Windows launcher (menu: vdo2srt / translate_srt)
+├── process_list.py      # Batch over many folders listed in a text file
+├── process_list.bat     # Windows launcher
+├── translate_srt.py     # Translate existing .srt files only — no video/transcription
+├── translate_srt.bat    # Windows launcher
+├── translate_routing.txt # Per-language translation engine routing (edit to add/move languages)
 ├── pyproject.toml       # Python packaging (pip install .)
 ├── requirements.txt     # Pip dependencies
 ├── .env.example         # Credentials env var template
@@ -169,13 +194,14 @@ vdo2srt/
 ├── src/
 │   ├── __init__.py     # Package marker, version string
 │   ├── __main__.py     # python -m src entry point
-│   ├── cli.py          # Argument parsing & orchestration
+│   ├── cli.py          # vdo2srt.py's argument parsing & orchestration
 │   ├── extractor.py    # FFmpeg audio extraction
 │   ├── transcriber.py  # Whisper & Google STT engines
-│   ├── translator.py   # Google Translate integration
+│   ├── translator.py   # Translation engines (DeepL/free fallback), routing, translate_existing_srt()
+│   ├── srt_reader.py   # Parses an existing .srt back into segments
 │   ├── srt_writer.py   # SRT formatting
 │   ├── gui.py          # Tkinter GUI dialogs
-│   └── utils.py        # Shared constants & file utilities
+│   └── utils.py        # Shared file utilities (media/srt discovery, backup helper)
 ├── docs/
 │   ├── technical.md    # Architecture & module reference
 │   ├── user_manual.md  # Detailed user guide

@@ -3,19 +3,27 @@
 ## Architecture
 
 ```
-vdo2srt.py           Thin wrapper — delegates to src/ package (backward-compatible entry point)
-vdo2srt.bat          Windows launcher — activates venv automatically
+vdo2srt.py           Single file / one folder — delegates to src/cli.py (backward-compatible entry point)
+vdo2srt.bat          Windows launcher — activates venv automatically; menu also offers translate_srt
+process_list.py      Batch over many folders read from a plain-text list file (one path per line)
+process_list.bat     Windows launcher
+translate_srt.py     Translate existing .srt files — no video, no transcription at all
+translate_srt.bat    Windows launcher
+translate_routing.txt  Per-language translation engine routing (edit to add/move a language)
 src/
 ├── __init__.py      Package marker, version string
 ├── __main__.py      Entry point for `python -m src`
-├── cli.py           CLI entry point — argument parsing, orchestration, batch/single-file routing
+├── cli.py           vdo2srt.py's CLI — argument parsing, orchestration, batch/single-file routing
 ├── gui.py           Tkinter GUI dialogs — file/folder picker, method picker
 ├── extractor.py     FFmpeg wrapper — audio extraction and chunking
 ├── transcriber.py   Transcription engines — faster-whisper (local) and Google STT (cloud)
-├── translator.py    Subtitle translation via Google Translate (batched, retry logic)
+├── translator.py    Translation engines (DeepL / free fallback), per-language routing, translate_existing_srt()
+├── srt_reader.py    Parses an existing .srt file back into segment dicts
 ├── srt_writer.py    SRT formatter — converts segments to subtitle file
-└── utils.py         Shared constants (SUPPORTED_EXTENSIONS) and helpers (find_media_files)
+└── utils.py         Shared file-discovery helpers and a backup-before-overwrite helper
 ```
+
+**Three entry points, one shared `src/` package.** `vdo2srt.py` handles a single file or one folder (full transcribe+translate pipeline). `process_list.py` does the same, but across every folder named in a text list file (that list's *generation* is the user's own separate tooling — not this project's concern; this script only consumes it). `translate_srt.py` is pure text-to-text — no video, no transcription — for retranslating/replacing `.srt` files that already exist, deliberately built on `src/translator.py` alone so it never imports `src/transcriber.py` (and therefore never pulls in faster-whisper) just to translate text.
 
 ---
 
@@ -43,7 +51,16 @@ Normalized 16kHz mono WAV  (temp file under _TEMP_DIR)
     │
     ▼  srt_writer.write_srt()
 output.srt  (same folder as input by default)
+    │
+    ▼  [unless --no-translate]  translator.translate_segments()
+output.{target_lang}.srt
 ```
+
+**Translate-only path** (existing `.srt`, no transcription — `cli.py` batch mode's `to_translate_only`/orphan handling, all of `process_list.py`, and the whole of `translate_srt.py`):
+```
+existing .srt  ──►  srt_reader.read_srt()  ──►  translator.translate_segments()  ──►  srt_writer.write_srt()
+```
+`translator.translate_existing_srt(srt_path, target_lang, overwrite)` wraps exactly this: skip if the target already exists (unless `overwrite`, which backs it up to `.bak` first via `utils.backup_if_exists` before replacing it).
 
 ---
 
@@ -73,11 +90,18 @@ Core processing pipeline for a single file:
 1. `extract_audio()` → WAV
 2. `transcriber.transcribe()` → segments
 3. `write_srt()` → `.srt`
-4. (if translate) `translate_segments()` → `.{target_lang}.srt`
+4. (if translate) `backup_if_exists()` on the translated path, then `translate_segments()` → `.{target_lang}.srt`
 
 #### `main(argv=None) → None`
 Main entry point. Resolves input (CLI arg or GUI dialog), engine (CLI arg or GUI dialog),
 then routes to single-file or batch mode.
+
+**Batch mode's three-way split** (folder input): given `find_media_files(folder)` and `find_original_srt_files(folder)`,
+- `to_transcribe` — media with no `.srt` yet (or any media, if `--overwrite`) → full `process_file()` pipeline. Voice-to-text only ever runs here.
+- `to_translate_only` — media whose `.srt` already exists (and `--overwrite` wasn't given) → `translate_existing_srt()`, no re-transcription.
+- **orphan `.srt`s** — original `.srt` files with no matching media file at all in the folder (video moved/deleted after a previous run) → also `translate_existing_srt()`, independent of `--overwrite`'s effect on the media-side split.
+
+`--overwrite` therefore means two different things depending on which stage a file is in: for a video with an existing `.srt`, it forces a full re-transcribe (unchanged, pre-existing behavior); for anything routed through `translate_existing_srt()`, it forces a retranslation with a `.bak` backup of the previous output.
 
 ### `src/gui.py`
 
@@ -286,30 +310,60 @@ Second subtitle text
 
 ---
 
+### `src/srt_reader.py`
+
+#### `read_srt(srt_path: Path) → list[dict]`
+Parses an existing `.srt` file back into segment dicts (`{start, end, text}`), the inverse of `srt_writer.write_srt()`. Powers every translate-only path — reading a subtitle file that already exists so it can be fed back through `translate_segments()`.
+
+---
+
 ### `src/translator.py`
 
-#### `translate_segments(segments, target_lang="en", source_lang="auto") → list[dict]`
-Translates segment text using `deep-translator` (Google Translate, no API key).
-Returns new segments with translated text but original timing.
+Pluggable translation engines, routed **per detected source language** — not `--language`/Whisper's guess, since the translate-only paths (existing `.srt`, no fresh transcription) often have no language metadata available at all.
 
-**Batching strategy:**
-- Segments are grouped in batches of 20 (`_BATCH_SIZE`)
-- Each batch is joined with ` ||| ` separator for a single HTTP call
-- If the separator is mangled in translation, falls back to one request per segment
-- Retries up to 3 times (5s, 10s, 15s backoff) on network errors
+#### `detect_source_language(segments) → str`
+Runs `langdetect` on a concatenated sample of the first ~30 non-empty segment texts (capped at 2000 chars) — not per line, since a single subtitle line ("Yes.") is usually too short to detect reliably alone. Normalizes langdetect's regional variants (`zh-cn`, `zh-tw`) down to the base code (`zh`). Returns `"auto"` if detection isn't possible (empty sample, or the exception `langdetect` raises on gibberish input).
+
+#### `translate_routing.txt` (repo root) — the routing table
+One line per source language: `<lang>  <engine>  <key_file>`. Parsed by `_load_routing()` into `{lang: (engine_name, key_file_or_None)}`. Comments (`#`) and blank lines are skipped. A language not listed here isn't an error — it just isn't in the dict, and `get_translator()` treats that the same as an explicit `google` entry.
+
+**Current routing:** `ko`, `ja`, `zh`, `ru` → `deepl` + `E:\API Key\Key files\platform\deepl.saksiri.txt`. Everything else falls back to the free engine automatically.
+
+**To add or move a language, edit this file — no code change.** Adding a genuinely new engine *type* (not just a new language) means one new class below plus one entry in the `_ENGINES` registry.
+
+#### Engine classes
+Both implement `translate_batch(texts: list[str], source_lang: str, target_lang: str) -> list[str]`.
+
+- **`DeepLEngine(key_file)`** — wraps the official `deepl` package. Reads the key file's first line as the secret (2-line format: line 1 = secret, line 2 = optional endpoint — see `E:\API Key\AGENTS.md`); the endpoint line is not actually used since `deepl.Translator` auto-selects the free/pro API host from the key's `:fx` suffix. Sends the whole batch (up to `_BATCH_SIZE`) to DeepL in one call — DeepL's list-input API needs no join/split trick. Target language `en` is special-cased to `EN-US` (DeepL rejects a bare `en` as a target; add more entries to `_DEEPL_TARGET_OVERRIDES` for other regional variants later). Source language is upper-cased and passed through (DeepL doesn't use regional variants for source).
+- **`GoogleEngine()`** — wraps `deep_translator.GoogleTranslator`, free, no key. Since that API is one-string-at-a-time, batches are joined with `" ||| "`, sent as one string, then split back — the same trick the original single-engine implementation used. Caches one `GoogleTranslator` sub-instance per `(source_lang, target_lang)` pair it's asked to translate, since those don't change within one file's batches.
+
+#### `get_translator(source_lang) → engine instance`
+Resolves the routing table entry for `source_lang`, instantiates (and caches, keyed by `"{engine}:{key_file}"`) the right engine. Degrades gracefully — with a printed note, never a crash — if: the routed engine name is unknown, the `deepl` package isn't installed, or the key file is missing/empty. Every failure mode falls back to `GoogleEngine`, so a config typo or a moved key file never aborts a batch run.
+
+#### `translate_segments(segments, target_lang="en", source_lang=None) → list[dict]`
+The shared public entry point. `source_lang=None` (or `"auto"`) triggers `detect_source_language()`; an explicit value skips detection. Batches of 20 (`_BATCH_SIZE`) are handed to whichever engine `get_translator()` resolved. Retries up to 3 times (2s, 4s, 8s backoff) on any error, at the engine-call level (`_call_with_retry`, shared by both engines).
+
+#### `translate_existing_srt(srt_path, target_lang, overwrite=False) → bool`
+`read_srt()` → `translate_segments()` → `write_srt()` to `<stem>.<target_lang>.srt`. If that output already exists: skipped and returns `True` unless `overwrite=True`, in which case the previous translation is backed up to `<name>.srt.bak` (`utils.backup_if_exists`) before being replaced. This one function is the shared workhorse behind `cli.py`'s translate-only/orphan handling, all of `process_list.py`, and all of `translate_srt.py` — deliberately kept independent of `cli.py`/`transcriber.py` so a pure text-translation run never imports faster-whisper.
 
 ---
 
 ### `src/utils.py`
 
-#### `SUPPORTED_EXTENSIONS`
-Set of supported file extensions (`.mp4`, `.mkv`, `.avi`, `.mov`, `.wmv`, `.m4v`, `.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`).
-
-#### `is_media_file(path: Path) → bool`
-Returns `True` if the path is a file with a supported media extension (case-insensitive).
-
 #### `find_media_files(folder: Path) → list[Path]`
-Returns a sorted list of supported media files inside the given folder.
+Returns a sorted list of files in `folder` (non-recursive) matching the internal `_MEDIA_EXTENSIONS` set (`.mp4`, `.mkv`, `.avi`, `.mov`, `.flv`, `.wmv`, `.webm`, `.m4v`, `.mp3`, `.wav`, `.aac`, `.flac`, `.m4a`, `.wma`, `.ogg`, `.opus`).
+
+#### `find_original_srt_files(folder: Path) → list[Path]`
+Returns `.srt` files in `folder` (non-recursive) that *aren't* already a translation output — i.e. excludes any file whose name ends in a language-code-shaped suffix (`movie.en.srt`, `movie.zh-cn.srt`, matched by `_LANG_SUFFIX_RE`). A 3+ letter release tag (`Holod.S01E01.AVC.srt`) never collides with this — the regex requires exactly 2 letters (optionally `xx-xx`) right before `.srt`. Used everywhere an "is this an original subtitle or already a translation" decision is needed: orphan-`.srt` detection in `cli.py`/`process_list.py`, and the whole scanning logic in `translate_srt.py`.
+
+#### `is_skippable_folder(folder: Path) → bool`
+True for hidden folders (name starts with `.`) or a known non-movie folder name (`_SKIP_NAMES`: Extras, Featurettes, Behind the Scenes, Deleted Scenes, Interviews, Scenes, Shorts, Trailers, Thumbs, Folder). Shared by `process_list.py`'s list-file parsing and `find_movie_subfolders()` below, so both agree on what to walk past.
+
+#### `find_movie_subfolders(root: Path) → list[Path]`
+Returns the immediate (non-recursive) subfolders of `root`, filtered through `is_skippable_folder()`. This is the one-level "library root → movie folders" walk `translate_srt.py --recursive` uses — deliberately not an arbitrary-depth walk, since the real library shape is exactly two levels (`root → movie/show folder → video + srt files`).
+
+#### `backup_if_exists(path: Path) → Path | None`
+If `path` exists, copies it to `<name>.bak` (overwriting any previous backup) and returns that backup path; no-op (returns `None`) otherwise. Used before any `write_srt()` call that might silently clobber an existing translation — in `process_file()` unconditionally (harmless no-op on a first-time run) and in `translate_existing_srt()` when `overwrite=True`.
 
 ---
 
@@ -320,6 +374,9 @@ Returns a sorted list of supported media files inside the given folder.
 | `faster-whisper` | Local speech-to-text (CTranslate2 backend) | Always |
 | `ctranslate2` | Inference engine for faster-whisper | Always (installed automatically) |
 | `tqdm` | Progress bars | Always |
+| `deepl` | DeepL translation engine, routed per `translate_routing.txt` | Always |
+| `deep-translator` | Free Google Translate fallback engine (no API key) | Always |
+| `langdetect` | Source-language detection for translation routing | Always |
 | `ffmpeg` (system) | Audio extraction | Always |
 | `google-cloud-speech` | Google STT client | Cloud engine only |
 | `google-auth` | Service account authentication | Cloud engine only |
@@ -373,3 +430,34 @@ multiple engine/language combinations on the same source file.
 ### Changing chunk duration for Google STT
 Adjust `CHUNK_DURATION` in the `CloudTranscriber` class body. Must remain below 60 seconds
 for the synchronous API. For async API with GCS support, this limit does not apply.
+
+### Adding or moving a translation language (no code change)
+Add a line to `translate_routing.txt`: `<lang>  <engine>  <key_file>`. `<lang>` should match what `langdetect` emits (ISO 639-1, e.g. `ja` not `jp`, `zh` not `cn`). To move an existing language to a different key or a different engine, just edit its line. Anything not listed automatically falls back to the free engine — no entry needed for that.
+
+### Adding a new translation engine type
+1. Create a new class in `src/translator.py` implementing `translate_batch(texts, source_lang, target_lang) -> list[str]`, following `DeepLEngine`'s or `GoogleEngine`'s shape (constructor takes whatever the engine needs — a key file, credentials, nothing at all).
+2. Add it to the `_ENGINES` registry dict.
+3. Reference its name in `translate_routing.txt` for whichever language(s) should use it.
+
+No changes are needed to `cli.py`, `process_list.py`, or `translate_srt.py` — they all call `translate_segments()`/`translate_existing_srt()`, which resolve the engine internally.
+
+---
+
+## `process_list.py` (root)
+
+Batch entry point for many folders at once, read from a plain-text list file (one path per line, optionally numbered like `"1. V:\Korean\Movie Title (2022)"` — see its own docstring). The list file's *generation* (e.g. a "no subs" export from the user's separate library-scanning tooling) is out of scope for this project.
+
+Per folder, applies the same three-way split as `cli.py`'s batch mode (`to_transcribe` / `to_translate_only` / orphan `.srt`s — see above), accumulating results across every folder in the list before printing a final summary. The transcriber (`get_transcriber()`) is loaded once, lazily — skipped entirely if every pending item across all folders turns out to be translation-only, so a list file of already-transcribed folders never even initializes Whisper/CUDA.
+
+`is_skippable_folder()` (from `utils.py`) filters junk entries out of the parsed list itself (hidden folders, `Extras`, etc.), in addition to being applied per-folder during the scan.
+
+---
+
+## `translate_srt.py` (root)
+
+Pure text-to-text entry point — never imports `src/cli.py` or `src/transcriber.py`, so running it never touches faster-whisper/CUDA at all. Three input shapes, auto-detected from the path:
+- A `.srt` file → translates that one file.
+- A folder → `find_original_srt_files(folder)`, translate each missing its `<target_lang>.srt`.
+- A folder with `--recursive` → treated as a library root; `find_movie_subfolders(root)` walks one level down (not arbitrary depth), scanning each subfolder the same way.
+
+Falls back to a small self-contained Tkinter picker (file vs. folder) when run with no arguments — deliberately not sharing `src/gui.py`'s pickers, since those are filtered for video/audio extensions, not `.srt`. `--overwrite` here means exactly what `translate_existing_srt()`'s `overwrite` parameter means: retranslate and replace, backing up the previous output to `.bak` first.

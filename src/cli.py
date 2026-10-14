@@ -14,9 +14,8 @@ from pathlib import Path
 from src.extractor import extract_audio
 from src.transcriber import get_transcriber
 from src.srt_writer import write_srt
-from src.srt_reader import read_srt
-from src.translator import translate_segments
-from src.utils import find_media_files
+from src.translator import translate_existing_srt, translate_segments
+from src.utils import backup_if_exists, find_media_files, find_original_srt_files
 from src.gui import make_root, pick_target_type, pick_file, pick_folder, pick_method
 
 
@@ -87,7 +86,8 @@ Examples:
     )
     parser.add_argument(
         "--overwrite", action="store_true",
-        help="(Folder mode) Re-process files that already have a matching .srt file.",
+        help="(Folder mode) Re-transcribe files that already have a matching .srt, "
+             "AND retranslate/replace existing translations (backed up to .bak first).",
     )
 
     return parser
@@ -131,42 +131,11 @@ def process_file(
     if translate:
         try:
             translated_path = output_path.parent / f"{output_path.stem}.{target_lang}.srt"
+            backup_if_exists(translated_path)
             translated = translate_segments(segments, target_lang=target_lang)
             write_srt(translated, translated_path)
         except Exception as e:
             print(f"  Translation failed: {e}")
-
-    return True
-
-
-def translate_existing_srt(
-    srt_path: Path,
-    target_lang: str,
-) -> bool:
-    """Load existing SRT and translate it. Returns True on success."""
-    # Check if translated file already exists
-    translated_path = srt_path.parent / f"{srt_path.stem}.{target_lang}.srt"
-    if translated_path.exists():
-        print(f"  Translation already exists: {translated_path.name}. Skipping.")
-        return True
-    
-    try:
-        segments = read_srt(srt_path)
-    except Exception as e:
-        print(f"  Failed to read SRT: {e}")
-        return False
-
-    if not segments:
-        print("  SRT file is empty, skipping translation.")
-        return False
-
-    try:
-        translated = translate_segments(segments, target_lang=target_lang)
-        count = write_srt(translated, translated_path)
-        print(f"  {count} entries translated to {target_lang}.")
-    except Exception as e:
-        print(f"  Translation failed: {e}")
-        return False
 
     return True
 
@@ -243,7 +212,14 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(1)
 
     all_files = find_media_files(input_path)
-    if not all_files:
+    # Original-language .srt files with no matching video in this folder (the
+    # video was moved/deleted after transcription) — still eligible for
+    # translation, found independently of the media scan above.
+    all_original_srts = find_original_srt_files(input_path) if translate else []
+    media_stems = {f.stem.lower() for f in all_files}
+    orphan_srts = [s for s in all_original_srts if s.stem.lower() not in media_stems]
+
+    if not all_files and not orphan_srts:
         print(f"No supported media files found in: {input_path}")
         sys.exit(0)
 
@@ -256,9 +232,10 @@ def main(argv: list[str] | None = None) -> None:
     print(f"  Engine   : {engine}" + (f" ({args.model}, device={device})" if engine == "local" else ""))
     print(f"  Language : {args.language or 'auto-detect'}")
     print(f"  Translate: {'yes → ' + args.target_language if translate else 'no (--no-translate)'}")
-    print(f"  Files    : {len(to_transcribe)} to process, {len(to_translate_only)} to translate (SRT exists)\n")
+    print(f"  Files    : {len(to_transcribe)} to process, {len(to_translate_only)} to translate (SRT exists), "
+          f"{len(orphan_srts)} orphan SRT(s) (no matching video)\n")
 
-    if not to_transcribe and not to_translate_only:
+    if not to_transcribe and not to_translate_only and not orphan_srts:
         print("No files to process or translate.")
         sys.exit(0)
 
@@ -279,12 +256,23 @@ def main(argv: list[str] | None = None) -> None:
             failed += 1
         print()
 
-    # Process translation-only for existing SRT files
+    # Process translation-only for existing SRT files (voice-to-text is never
+    # re-run here — these already have their original-language .srt)
     if translate and to_translate_only:
         for idx, file_path in enumerate(to_translate_only, 1):
             srt_path = file_path.with_suffix(".srt")
             print(f"[{len(to_transcribe) + idx}/{len(to_transcribe) + len(to_translate_only)}] {file_path.name} (translating)")
-            if translate_existing_srt(srt_path, args.target_language):
+            if translate_existing_srt(srt_path, args.target_language, overwrite=args.overwrite):
+                succeeded += 1
+            else:
+                failed += 1
+            print()
+
+    # Orphan .srt files — no matching video, translation-only regardless of --overwrite
+    if translate and orphan_srts:
+        for idx, srt_path in enumerate(orphan_srts, 1):
+            print(f"[orphan {idx}/{len(orphan_srts)}] {srt_path.name} (translating)")
+            if translate_existing_srt(srt_path, args.target_language, overwrite=args.overwrite):
                 succeeded += 1
             else:
                 failed += 1

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="3290" viewBox="0 0 1200 3290" font-family="'Segoe UI', Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="3520" viewBox="0 0 1200 3520" font-family="'Segoe UI', Arial, sans-serif">
   <defs>
     <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#1a73e8;stop-opacity:1" />
@@ -26,7 +26,7 @@
   </defs>
 
   <!-- Background -->
-  <rect width="1200" height="3290" fill="#ffffff"/>
+  <rect width="1200" height="3520" fill="#ffffff"/>
 
   <!-- ===== HEADER ===== -->
   <rect x="0" y="0" width="1200" height="200" fill="url(#headerGrad)"/>
@@ -48,7 +48,7 @@
   <text x="70" y="435" fill="#1a73e8" font-size="20" font-weight="700">What It Does</text>
   <text x="70" y="465" fill="#444" font-size="14">Takes any video file (MP4, MKV, AVI, MOV, etc.) or audio file (MP3, WAV, FLAC, etc.) and</text>
   <text x="70" y="485" fill="#444" font-size="14">automatically generates <tspan font-weight="700">.srt subtitle files</tspan> - ready to use in any media player or editor.</text>
-  <text x="70" y="510" fill="#444" font-size="14">Also produces an <tspan font-weight="700">English translation</tspan> (.en.srt) automatically - no API key needed for translation.</text>
+  <text x="70" y="510" fill="#444" font-size="14">Also produces an <tspan font-weight="700">English translation</tspan> (.en.srt) automatically - engine is auto-selected per source language.</text>
 
   <!-- ===== PIPELINE ===== -->
   <rect x="40" y="550" width="1120" height="200" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
@@ -74,7 +74,7 @@
 
   <rect x="850" y="610" width="220" height="60" rx="8" fill="#fce4ec" stroke="#e91e63" stroke-width="1.5"/>
   <text x="960" y="635" text-anchor="middle" fill="#880e4f" font-size="14" font-weight="700">4. Translation</text>
-  <text x="960" y="655" text-anchor="middle" fill="#555" font-size="11">Google Translate - .en.srt</text>
+  <text x="960" y="655" text-anchor="middle" fill="#555" font-size="11">DeepL or fallback - .en.srt</text>
 
   <rect x="350" y="700" width="500" height="35" rx="6" fill="#f5f5f5" stroke="#ccc" stroke-width="1" stroke-dasharray="4"/>
   <text x="600" y="723" text-anchor="middle" fill="#555" font-size="13">Output:  <tspan font-weight="700">film.srt</tspan>  (original)  +  <tspan font-weight="700">film.en.srt</tspan>  (English translation)</text>
@@ -119,17 +119,17 @@
 
   <rect x="70" y="1145" width="1060" height="350" rx="8" fill="#1e1e1e"/>
   <text x="90" y="1175" fill="#6a9955" font-size="13" font-style="italic">:: GUI mode - dialogs appear automatically</text>
-  <text x="90" y="1200" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat</text>
+  <text x="90" y="1200" fill="#d4d4d4" font-size="13">"E:\Plex Utility\vdo2srt\vdo2srt.bat"</text>
   <text x="90" y="1230" fill="#6a9955" font-size="13" font-style="italic">:: Single Russian film, GPU, with English translation</text>
-  <text x="90" y="1255" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru</text>
+  <text x="90" y="1255" fill="#d4d4d4" font-size="13">"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\film.mkv" --engine local --language ru</text>
   <text x="90" y="1285" fill="#6a9955" font-size="13" font-style="italic">:: Skip English translation (original subtitles only)</text>
-  <text x="90" y="1310" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --no-translate</text>
+  <text x="90" y="1310" fill="#d4d4d4" font-size="13">"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\film.mkv" --engine local --language ru --no-translate</text>
   <text x="90" y="1340" fill="#6a9955" font-size="13" font-style="italic">:: Translate to French instead of English</text>
-  <text x="90" y="1365" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine local --language ru --target-language fr</text>
+  <text x="90" y="1365" fill="#d4d4d4" font-size="13">"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\film.mkv" --engine local --language ru --target-language fr</text>
   <text x="90" y="1395" fill="#6a9955" font-size="13" font-style="italic">:: Batch process an entire folder</text>
-  <text x="90" y="1420" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies" --engine local --language ru</text>
+  <text x="90" y="1420" fill="#d4d4d4" font-size="13">"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies" --engine local --language ru</text>
   <text x="90" y="1450" fill="#6a9955" font-size="13" font-style="italic">:: Google Cloud engine</text>
-  <text x="90" y="1475" fill="#d4d4d4" font-size="13">E:\vdo2srt\vdo2srt.bat "E:\Movies\film.mkv" --engine cloud --language ru --credentials "E:\key.json"</text>
+  <text x="90" y="1475" fill="#d4d4d4" font-size="13">"E:\Plex Utility\vdo2srt\vdo2srt.bat" "E:\Movies\film.mkv" --engine cloud --language ru --credentials "E:\key.json"</text>
 
   <!-- ===== OPTIONS TABLE ===== -->
   <rect x="40" y="1540" width="1120" height="430" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
@@ -192,7 +192,7 @@
 
   <rect x="70" y="1930" width="1060" height="30" fill="#f8f9fa"/>
   <text x="100" y="1950" fill="#333" font-size="13" font-weight="700">--overwrite</text>
-  <text x="350" y="1950" fill="#555" font-size="13">Re-process files that already have a .srt (folder mode only)</text>
+  <text x="350" y="1950" fill="#555" font-size="13">Re-transcribe existing .srt AND retranslate .en.srt (backed up to .bak)</text>
   <text x="850" y="1950" fill="#888" font-size="13">Off (skip)</text>
 
   <!-- ===== MODEL COMPARISON ===== -->
@@ -299,11 +299,36 @@
   <text x="90" y="2858" fill="#c62828" font-size="13" font-weight="700">Running from wrong environment</text>
   <text x="400" y="2858" fill="#555" font-size="13">Use vdo2srt.bat which handles venv automatically, or activate venv first.</text>
 
+  <!-- ===== ADDITIONAL TOOLS ===== -->
+  <rect x="40" y="2910" width="1120" height="200" rx="12" fill="#fff" filter="url(#shadow)" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="70" y="2945" fill="#1a73e8" font-size="20" font-weight="700">Additional Tools</text>
+
+  <rect x="70" y="2965" width="340" height="125" rx="8" fill="#e3f2fd" stroke="#1a73e8" stroke-width="1"/>
+  <text x="240" y="2990" text-anchor="middle" fill="#0d47a1" font-size="16" font-weight="700">process_list.bat</text>
+  <text x="240" y="3015" text-anchor="middle" fill="#555" font-size="12">Batch over many folders listed</text>
+  <text x="240" y="3033" text-anchor="middle" fill="#555" font-size="12">in a text file (e.g. "no subs")</text>
+  <text x="240" y="3060" text-anchor="middle" fill="#888" font-size="11">Existing .srt -&gt; translate only,</text>
+  <text x="240" y="3078" text-anchor="middle" fill="#888" font-size="11">no re-transcription</text>
+
+  <rect x="430" y="2965" width="340" height="125" rx="8" fill="#fce4ec" stroke="#e91e63" stroke-width="1"/>
+  <text x="600" y="2990" text-anchor="middle" fill="#880e4f" font-size="16" font-weight="700">translate_srt.bat</text>
+  <text x="600" y="3015" text-anchor="middle" fill="#555" font-size="12">Translate existing .srt files -</text>
+  <text x="600" y="3033" text-anchor="middle" fill="#555" font-size="12">no video, no transcription</text>
+  <text x="600" y="3060" text-anchor="middle" fill="#888" font-size="11">File, folder, or --recursive</text>
+  <text x="600" y="3078" text-anchor="middle" fill="#888" font-size="11">across a whole library root</text>
+
+  <rect x="790" y="2965" width="340" height="125" rx="8" fill="#e8f5e9" stroke="#0f9d58" stroke-width="1"/>
+  <text x="960" y="2990" text-anchor="middle" fill="#1e8e3e" font-size="16" font-weight="700">Translation Routing</text>
+  <text x="960" y="3015" text-anchor="middle" fill="#555" font-size="12">ko / ja / zh / ru -&gt; DeepL</text>
+  <text x="960" y="3033" text-anchor="middle" fill="#555" font-size="12">everything else -&gt; free fallback</text>
+  <text x="960" y="3060" text-anchor="middle" fill="#888" font-size="11">Edit translate_routing.txt to</text>
+  <text x="960" y="3078" text-anchor="middle" fill="#888" font-size="11">add/move a language - no code</text>
+
   <!-- ===== FOOTER ===== -->
-  <rect x="0" y="2910" width="1200" height="380" fill="#1a73e8"/>
-  <text x="600" y="2950" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">Need Help?</text>
-  <text x="600" y="2985" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="14">Open an issue on GitHub: https://github.com/SaksiriK/Gen-SRT-from-video</text>
-  <text x="600" y="3015" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="14">Or check the detailed technical documentation in docs/technical.md</text>
-  <text x="600" y="3060" text-anchor="middle" fill="#ffffff" fill-opacity="0.6" font-size="12">vdo2srt v2.0.0 - Built with faster-whisper, Google Cloud STT, and deep-translator</text>
-  <text x="600" y="3085" text-anchor="middle" fill="#ffffff" fill-opacity="0.47" font-size="11">2026 - Open Source</text>
+  <rect x="0" y="3140" width="1200" height="380" fill="#1a73e8"/>
+  <text x="600" y="3180" text-anchor="middle" fill="#ffffff" font-size="22" font-weight="700">Need Help?</text>
+  <text x="600" y="3215" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="14">Open an issue on GitHub: https://github.com/SaksiriK/Gen-SRT-from-video</text>
+  <text x="600" y="3245" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-size="14">Or check the detailed technical documentation in docs/technical.md</text>
+  <text x="600" y="3290" text-anchor="middle" fill="#ffffff" fill-opacity="0.6" font-size="12">vdo2srt v2.1.0 - Built with faster-whisper, Google Cloud STT, DeepL, and deep-translator</text>
+  <text x="600" y="3315" text-anchor="middle" fill="#ffffff" fill-opacity="0.47" font-size="11">2026 - Open Source</text>
 </svg>

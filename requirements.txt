@@ -1,7 +1,11 @@
 # Core — always needed
 faster-whisper          # faster Whisper implementation (CTranslate2 backend)
+ctranslate2==4.8.1      # pinned: Windows Smart App Control blocks the newer unsigned 4.8.2 DLL ("Application Control policy has blocked this file"); 4.8.1 loads
+av<19                   # pinned: PyAV 19 removed av.open(metadata_errors=...) which faster-whisper 1.2.1 still passes
 tqdm                    # progress bars
-deep-translator         # Google Translate (and others) — no API key required
+deepl                   # DeepL translation engine — routed per translate_routing.txt
+deep-translator         # Google Translate — free fallback engine (no API key required)
+langdetect              # source-language detection for translation routing
 
 # Google Cloud Speech-to-Text — needed only for --engine cloud
 google-cloud-speech

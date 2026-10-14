@@ -1,4 +1,4 @@
-"""
+r"""
 process_list.py — Generate SRT subtitles for every folder in a text list file.
 
 The list file should contain one folder path per line, optionally with a
@@ -37,12 +37,8 @@ import argparse
 from src.cli import process_file
 from src.gui import make_root, pick_method
 from src.transcriber import get_transcriber
-from src.utils import find_media_files
-
-
-# Folder names that are never movie folders — skip without checking disk.
-_SKIP_NAMES = {"thumbs", "folder", "extras", "featurettes", "behind the scenes",
-               "deleted scenes", "interviews", "scenes", "shorts", "trailers"}
+from src.translator import translate_existing_srt
+from src.utils import find_media_files, find_original_srt_files, is_skippable_folder
 
 
 def _pick_list_file() -> Path:
@@ -75,15 +71,30 @@ def _parse_list_file(list_path: Path) -> list[Path]:
         # Strip optional leading "42. " numbering
         m = re.match(r"^\d+\.\s+(.+)$", line)
         path_str = (m.group(1) if m else line).strip()
-        p = Path(path_str)
-        # Skip hidden/system folders (.actors, .thumbnails, etc.)
-        if p.name.startswith("."):
-            continue
-        # Skip known non-movie folder names
-        if p.name.lower() in _SKIP_NAMES:
+        p = _remap_missing(Path(path_str), list_path)
+        if is_skippable_folder(p):
             continue
         paths.append(p)
     return paths
+
+
+def _remap_missing(p: Path, list_path: Path) -> Path:
+    """
+    If a listed folder doesn't exist as written (e.g. the list was exported
+    while the library was mounted under a different drive letter), try it on
+    the list file's own drive, then next to the list file itself.
+    """
+    if p.is_dir():
+        return p
+    list_dir = list_path.absolute().parent
+    candidates = []
+    if p.drive:
+        candidates.append(Path(list_dir.drive + str(p)[len(p.drive):]))
+    candidates.append(list_dir / p.name)
+    for c in candidates:
+        if c.is_dir():
+            return c
+    return p
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -118,7 +129,8 @@ Examples:
     p.add_argument("--target-language", metavar="LANG", default="en",
                    help="Translation target language (default: en).")
     p.add_argument("--overwrite", action="store_true",
-                   help="Re-process files that already have a matching .srt.")
+                   help="Re-transcribe files that already have a matching .srt, AND "
+                        "retranslate/replace existing translations (backed up to .bak first).")
     return p
 
 
@@ -147,73 +159,108 @@ def main() -> None:
         print("No folder paths found in list file.")
         sys.exit(0)
 
-    to_process: list[tuple[Path, list[Path]]] = []
+    # Per folder, split work into transcription (no original .srt yet — voice-
+    # to-text runs) vs. translation-only (original .srt already exists, either
+    # next to its video or orphaned with the video moved/deleted — voice-to-
+    # text is never re-run for these).
+    folder_plans: list[dict] = []
     skipped_no_media = 0
-    skipped_has_srt = 0
+    skipped_nothing_pending = 0
 
     for folder in all_folders:
         if not folder.is_dir():
             skipped_no_media += 1
             continue
+
         media = find_media_files(folder)
-        if not media:
+        originals = find_original_srt_files(folder) if translate else []
+
+        if not media and not originals:
             skipped_no_media += 1
             continue
-        pending = media if args.overwrite else [f for f in media if not f.with_suffix(".srt").exists()]
-        if not pending:
-            skipped_has_srt += 1
-            continue
-        to_process.append((folder, pending))
 
-    total_files = sum(len(files) for _, files in to_process)
+        transcribe_list = [f for f in media if args.overwrite or not f.with_suffix(".srt").exists()]
+
+        translate_list: list[Path] = []
+        if translate:
+            translate_list = [
+                f.with_suffix(".srt") for f in media
+                if not args.overwrite and f.with_suffix(".srt").exists()
+            ]
+            media_stems = {f.stem.lower() for f in media}
+            translate_list.extend(s for s in originals if s.stem.lower() not in media_stems)
+
+        if not transcribe_list and not translate_list:
+            skipped_nothing_pending += 1
+            continue
+
+        folder_plans.append({"folder": folder, "transcribe": transcribe_list, "translate": translate_list})
+
+    total_transcribe = sum(len(p["transcribe"]) for p in folder_plans)
+    total_translate = sum(len(p["translate"]) for p in folder_plans)
 
     print(f"\nprocess_list")
     print(f"  List     : {list_path.name}  ({len(all_folders)} entries parsed)")
     print(f"  Engine   : {engine}" + (f" ({args.model}, device={device})" if engine == "local" else ""))
     print(f"  Language : {args.language or 'auto-detect'}")
     print(f"  Translate: {'yes → ' + args.target_language if translate else 'no (--no-translate)'}")
-    print(f"  Folders  : {len(to_process)} to process ({total_files} file(s)), "
-          f"{skipped_has_srt} already done, {skipped_no_media} not found / no media")
+    print(f"  Folders  : {len(folder_plans)} with work "
+          f"({total_transcribe} to transcribe, {total_translate} to translate), "
+          f"{skipped_nothing_pending} already done, {skipped_no_media} not found / no media")
     print()
 
-    if not to_process:
-        print("Nothing to process. Use --overwrite to re-process existing SRTs.")
+    if not folder_plans:
+        print("Nothing to process. Use --overwrite to re-process existing SRTs/translations.")
         sys.exit(0)
 
-    # Load the transcriber once — reused across every folder/file.
-    try:
-        transcriber = get_transcriber(
-            engine=engine,
-            model=args.model,
-            language=args.language,
-            credentials=args.credentials,
-            device=device,
-            max_duration=max_dur,
-        )
-    except (OSError, ValueError, FileNotFoundError) as e:
-        print(f"Failed to initialise transcriber:\n  {e}")
-        sys.exit(1)
+    # Load the transcriber once — reused across every folder/file. Skipped
+    # entirely if every pending item is translation-only.
+    transcriber = None
+    if total_transcribe:
+        try:
+            transcriber = get_transcriber(
+                engine=engine,
+                model=args.model,
+                language=args.language,
+                credentials=args.credentials,
+                device=device,
+                max_duration=max_dur,
+            )
+        except (OSError, ValueError, FileNotFoundError) as e:
+            print(f"Failed to initialise transcriber:\n  {e}")
+            sys.exit(1)
 
     succeeded = failed = 0
 
-    for folder_idx, (folder, pending_files) in enumerate(to_process, 1):
-        label = f"[{folder_idx}/{len(to_process)}] {folder.name}"
-        if len(pending_files) > 1:
-            label += f"  ({len(pending_files)} files)"
+    for folder_idx, plan in enumerate(folder_plans, 1):
+        folder = plan["folder"]
+        n_items = len(plan["transcribe"]) + len(plan["translate"])
+        label = f"[{folder_idx}/{len(folder_plans)}] {folder.name}"
+        if n_items > 1:
+            label += f"  ({n_items} item(s))"
         print(label)
 
-        for file_path in pending_files:
-            if len(pending_files) > 1:
-                print(f"  → {file_path.name}")
+        for file_path in plan["transcribe"]:
+            if n_items > 1:
+                print(f"  → {file_path.name} (transcribing)")
             output_path = file_path.with_suffix(".srt")
             if process_file(file_path, output_path, transcriber, translate, args.target_language):
                 succeeded += 1
             else:
                 failed += 1
+
+        for srt_path in plan["translate"]:
+            if n_items > 1:
+                print(f"  → {srt_path.name} (translating)")
+            if translate_existing_srt(srt_path, args.target_language, overwrite=args.overwrite):
+                succeeded += 1
+            else:
+                failed += 1
+
         print()
 
     print(f"Done: {succeeded} succeeded, {failed} failed  "
-          f"({len(to_process)} folders, {total_files} files total).")
+          f"({len(folder_plans)} folders processed).")
 
 
 if __name__ == "__main__":

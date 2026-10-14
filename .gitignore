@@ -23,8 +23,10 @@ env/
 # Generated / temporary files
 *.wav
 *.srt
+*.srt.bak
 *.mp3
 video/
 
 # Session transcripts (AI chat logs)
 .claude/
+venv_old_*/

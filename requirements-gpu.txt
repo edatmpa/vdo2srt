@@ -1,0 +1,4 @@
+# NVIDIA CUDA libraries for faster-whisper on an NVIDIA GPU (--device cuda).
+# setup.bat installs these only when nvidia-smi is found; not needed for CPU or Google Cloud.
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
