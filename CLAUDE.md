@@ -93,8 +93,12 @@ src/
   Python 3.12 venv in `venv\` (CUDA float16 verified 14 Oct: `ctranslate2.get_cuda_device_count() == 1`).
   This is the PC for GPU transcription; media is read from the NAS (`U:` = `\\192.168.1.50\Syno1`,
   `V:` = `\\192.168.1.51\Syno1517`) and the `.srt` files are written next to the videos there.
-- A second copy runs on the Plex server NUC (PLEX_SVR_EDK, 192.168.1.34, `E:\vdo2srt`, reachable here as
-  `T:\vdo2srt`): **no NVIDIA GPU**, CPU only. The two copies are not synced automatically. On 14 Oct the NUC's
+- **This GPU copy is the canonical one**, pushed to [github.com/edatmpa/vdo2srt](https://github.com/edatmpa/vdo2srt)
+  (private; remote `edatmpa`, `main` tracks it since 25 Oct 2026). The old remotes `origin`/`public` (SaksiriK)
+  are unused: `origin` is empty on GitHub, `public` is gone or inaccessible.
+- **DEPRECATED (25 Oct 2026):** the CPU-only copy on the Plex server NUC (PLEX_SVR_EDK, 192.168.1.34,
+  `E:\vdo2srt`, reachable here read-only as `T:\vdo2srt`). Don't develop it or sync fixes to it; it lacks the
+  25 Oct menu quote fix. Transcription runs here. History: on 14 Oct the NUC's
   10 Oct setup work was copied here: `setup.bat`, `_env.bat`, `requirements-gpu.txt`, `.gitattributes`, the three
   launchers, the requirements pins, and `LocalTranscriber._resolve_device` (asks for CUDA on a PC without it →
   CPU with a note instead of a crash). This PC's `process_list.py` is newer than the NUC's (`_remap_missing`).
