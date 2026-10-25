@@ -173,16 +173,16 @@ No arguments opens a GUI picker (single file or folder — `--recursive` must be
 Which engine translates a file is chosen **automatically**, based on the subtitle's own text — not on `--language` or Whisper's guess. This matters most for `process_list.bat`/`translate_srt.bat`, where an existing `.srt` may carry no language information at all.
 
 - The source language is **detected from the subtitle text itself**.
-- `translate_routing.txt` (in the project root) maps a detected language to an engine and a key file:
+- `translate_routing.txt` (in the project root) maps a detected language to a **chain** of engines and key files, tried top to bottom (Japanese shown; `ko`, `zh`, `ru` are the same):
   ```
-  ko    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
-  ja    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
-  zh    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
-  ru    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
+  ja    deepl       E:\API Key\Key files\platform\deepl.saksiri.txt
+  ja    deepseek    E:\API Key\Key files\platform\deepseek.saksiri.txt
+  ja    deepseek    E:\API Key\Key files\platform\deepseek.saksiri2.txt
   ```
-- Any language **not** listed there automatically uses a free, keyless fallback engine (Google Translate via `deep-translator`) — nothing to configure.
-- **To route a new language to DeepL (or move one to a different key), just add/edit a line in `translate_routing.txt`.** No code change needed.
-- If a routed key file is missing, empty, or the `deepl` package isn't installed, the tool prints a note and falls back to the free engine automatically rather than failing the whole run.
+- When a key runs out of quota/credit (or is rejected) — even halfway through a file — the tool prints a note, skips that key for the rest of the run, and carries on with the next line. Free Google is always the final step, so a batch never stops just because a paid key is empty.
+- Any language **not** listed there automatically uses the free, keyless engine (Google Translate via `deep-translator`) — nothing to configure.
+- **To reorder engines, add a key, or route a new language, just add/edit lines in `translate_routing.txt`.** No code change needed.
+- DeepL's free API plan gives 1,000,000 characters per monthly billing period. Measured: a ~46-min Japanese episode is ≈ 4,300 characters (≈ 230 episodes per month); a Russian episode was ≈ 60,000 (≈ 16).
 
 ---
 

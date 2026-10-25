@@ -1,9 +1,13 @@
 # translate_routing.txt — per-language translation engine routing
 #
-# One line per source language: <lang>  <engine>  <key_file>
+# One line per engine/key: <lang>  <engine>  <key_file>
+# Several lines for the same language form a chain, tried top to bottom: when
+# a key's quota/credit runs out (or it is rejected) mid-run, it is skipped for
+# the rest of the run and the next line takes over. Free "google" is always
+# the implicit last step, so it never needs listing.
 #   lang     — ISO 639-1 code as emitted by langdetect (e.g. "ja" not "jp",
 #              "zh" not "cn" — langdetect's zh-cn/zh-tw are normalized to "zh").
-#   engine   — "deepl" or "google" (see src/translator.py's engine registry).
+#   engine   — "deepl", "deepseek" or "google" (see src/translator.py's engine registry).
 #   key_file — path to the engine's key file (2-line format: line 1 = secret,
 #              line 2 = endpoint (optional) — see E:\API Key\AGENTS.md).
 #              Omit for engines that need no key (e.g. google).
@@ -14,7 +18,18 @@
 # To route a language to a different/better engine in the future, or point
 # it at a different key file, just edit its line here. No code changes.
 
-ko    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
-ja    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
-zh    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
-ru    deepl    E:\API Key\Key files\platform\deepl.saksiri.txt
+ko    deepl       E:\API Key\Key files\platform\deepl.saksiri.txt
+ko    deepseek    E:\API Key\Key files\platform\deepseek.saksiri.txt
+ko    deepseek    E:\API Key\Key files\platform\deepseek.saksiri2.txt
+
+ja    deepl       E:\API Key\Key files\platform\deepl.saksiri.txt
+ja    deepseek    E:\API Key\Key files\platform\deepseek.saksiri.txt
+ja    deepseek    E:\API Key\Key files\platform\deepseek.saksiri2.txt
+
+zh    deepl       E:\API Key\Key files\platform\deepl.saksiri.txt
+zh    deepseek    E:\API Key\Key files\platform\deepseek.saksiri.txt
+zh    deepseek    E:\API Key\Key files\platform\deepseek.saksiri2.txt
+
+ru    deepl       E:\API Key\Key files\platform\deepl.saksiri.txt
+ru    deepseek    E:\API Key\Key files\platform\deepseek.saksiri.txt
+ru    deepseek    E:\API Key\Key files\platform\deepseek.saksiri2.txt

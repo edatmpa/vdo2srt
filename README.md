@@ -13,7 +13,7 @@ Convert video/audio files to SRT subtitle files using **faster-whisper** (local 
 - 🚀 **GPU acceleration**: Auto-detects CUDA — falls back to CPU
 - 🌍 **Multi-language**: Auto-detect or specify language (en, ru, ja, th, fr, de, etc.)
 - 🔄 **Auto-translate**: Produces an English `.en.srt` file automatically
-- 🧭 **Routed translation engine**: DeepL for `ko`/`ja`/`zh`/`ru` (per `translate_routing.txt`), free Google fallback for everything else — source language is detected from the actual subtitle text, and the routing is a one-line text-file edit away from adding a new language or engine
+- 🧭 **Routed translation engines**: for `ko`/`ja`/`zh`/`ru`, DeepL first, then DeepSeek once DeepL's quota runs out, then free Google (per `translate_routing.txt`); free Google for everything else — source language is detected from the actual subtitle text, and the routing is a one-line text-file edit away from adding a new language or engine
 - 📁 **Batch mode**: Process an entire folder of videos in one go, or every folder listed in a text file (`process_list.py`)
 - 📝 **Translate-only tool**: `translate_srt.py` retranslates/replaces existing `.srt` files with no video or transcription involved — single file, one folder, or a whole library root
 - 🖥️ **GUI dialogs**: Double-click a `.bat` file for a point-and-click interface
@@ -199,7 +199,7 @@ vdo2srt/
 │   ├── cli.py          # vdo2srt.py's argument parsing & orchestration
 │   ├── extractor.py    # FFmpeg audio extraction
 │   ├── transcriber.py  # Whisper & Google STT engines
-│   ├── translator.py   # Translation engines (DeepL/free fallback), routing, translate_existing_srt()
+│   ├── translator.py   # Translation engines (DeepL/DeepSeek/free fallback), routing chains, translate_existing_srt()
 │   ├── srt_reader.py   # Parses an existing .srt back into segments
 │   ├── srt_writer.py   # SRT formatting
 │   ├── gui.py          # Tkinter GUI dialogs
