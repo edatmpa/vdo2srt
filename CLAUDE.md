@@ -16,9 +16,6 @@ All commands use the venv Python at `E:\Plex Utility\vdo2srt\venv\Scripts\python
 # Skip English translation
 "E:\Plex Utility\vdo2srt\venv\Scripts\python.exe" vdo2srt.py "E:\Movies" --engine local --language ru --no-translate
 
-# Test Google Cloud credentials
-"E:\Plex Utility\vdo2srt\venv\Scripts\python.exe" test_google_apis.py
-
 # Run as a module (alternative entry point)
 "E:\Plex Utility\vdo2srt\venv\Scripts\python.exe" -m src "E:\path\to\film.mkv" --engine local --language ru
 
@@ -57,7 +54,7 @@ src/
 ├── srt_reader.py    Parses an existing .srt file back into segment dicts
 ├── srt_writer.py    SRT formatter — converts segments to subtitle file
 └── utils.py         Shared constants/helpers: find_media_files, find_original_srt_files,
-                      find_movie_subfolders, is_skippable_folder, backup_if_exists
+                      find_movie_subfolders, is_skippable_folder, backup_if_exists, clean_path
 ```
 
 **Pipeline** (single file, via `vdo2srt.py`):
@@ -110,6 +107,12 @@ src/
 - **Pins in requirements.txt:** `ctranslate2==4.8.1` (Smart App Control on the NUC blocks the unsigned 4.8.2
   `_ext.pyd`) and `av<19` (PyAV 19 removed `av.open(metadata_errors=...)`, which faster-whisper 1.2.1 passes).
   Test an import before relaxing either pin.
+- **`vdo2srt.bat` menu**: the three options share prompt subroutines (`:ask_path`, `:ask_engine`,
+  `:ask_source_lang`, `:ask_translate`, `:ask_yes`, `:run`) — add new prompts there, not per option.
+  `:ask_path` strips any quotes the user typed/pasted before re-quoting once (25 Oct 2026 fix: a quoted path
+  with spaces was double-quoted to `""V:\...""` and split into several arguments). Don't name a menu variable
+  `LANG` (it's a real environment variable). The Python entry points also run every input path through
+  `utils.clean_path()` (trims whitespace + surrounding quotes), including lines of a `process_list` list file.
 - `.bat` files must stay CRLF (`.gitattributes` enforces it) — LF-only batch files break `goto`/labels in cmd.
 
 ## Google Cloud credentials

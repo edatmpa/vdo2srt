@@ -34,7 +34,7 @@ if str(_project_root) not in sys.path:
 import argparse
 
 from src.translator import translate_existing_srt
-from src.utils import find_movie_subfolders, find_original_srt_files
+from src.utils import clean_path, find_movie_subfolders, find_original_srt_files
 
 
 def _pick_input() -> Path:
@@ -115,7 +115,7 @@ Examples:
 def main() -> None:
     args = _build_parser().parse_args()
 
-    input_path = Path(args.input) if args.input else _pick_input()
+    input_path = clean_path(args.input) if args.input else _pick_input()
     if not input_path.exists():
         print(f"Error: Not found: {input_path}")
         sys.exit(1)

@@ -5,14 +5,19 @@ HOW TO RUN vdo2srt ON WINDOWS
    double-click  setup.bat  once - it builds the Python environment for this PC
    (with the NVIDIA GPU libraries, since this PC has an RTX 3060 Ti).
 1. Open File Explorer and navigate to E:\Plex Utility\vdo2srt
-2. Double-click  vdo2srt.bat
-3. A dialog appears — choose "Single video / audio file" or "Entire folder (batch)"
-4. A file (or folder) picker appears — select your video or folder
-5. A method picker appears — click  Local — GPU,  Local — CPU,  or  Google Cloud
+2. Double-click  vdo2srt.bat  - a menu appears:
+     1) Convert video/audio to subtitles   2) Batch a list of folders
+     3) Translate existing SRT only         4) Exit
+3. Answer the prompts (Enter = default). For the file/folder prompt you can
+   leave it blank to get a picker, or type/paste a path - with or without
+   quotes, e.g. Explorer's "Copy as path" works as-is.
+4. Engine: 1 = Local GPU, 2 = Local CPU, 3 = Google Cloud (blank = picker)
+5. Source language (blank = auto-detect), translate Y/n, target language,
+   and whether to redo existing output.
 6. A terminal window opens and shows progress.
    When done, two files are saved beside each video:
      film.srt      — subtitles in the original language
-     film.en.srt   — English translation (automatic, no API key needed)
+     film.en.srt   — English translation (DeepL or free Google, see translate_routing.txt)
 
 ▎ Tip: If the terminal closes too fast to read an error, run it from a terminal instead (see below).
 

@@ -97,6 +97,14 @@ def find_movie_subfolders(root: Path) -> list[Path]:
     return sorted(subfolders, key=lambda p: p.name)
 
 
+def clean_path(raw: str) -> Path:
+    """
+    Turn a typed/pasted path into a Path: trims whitespace and any surrounding
+    double quotes (Explorer's "Copy as path" and drag-and-drop both add them).
+    """
+    return Path(raw.strip().strip('"').strip())
+
+
 def backup_if_exists(path: Path) -> Path | None:
     """
     If *path* exists, copy it to "<name>.bak" (overwriting any previous

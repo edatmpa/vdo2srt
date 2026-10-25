@@ -15,7 +15,7 @@ from src.extractor import extract_audio
 from src.transcriber import get_transcriber
 from src.srt_writer import write_srt
 from src.translator import translate_existing_srt, translate_segments
-from src.utils import backup_if_exists, find_media_files, find_original_srt_files
+from src.utils import backup_if_exists, clean_path, find_media_files, find_original_srt_files
 from src.gui import make_root, pick_target_type, pick_file, pick_folder, pick_method
 
 
@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None) -> None:
 
     # Resolve input — file picker / folder picker / command-line path
     if args.input:
-        input_path = Path(args.input)
+        input_path = clean_path(args.input)
     else:
         target_type = pick_target_type(root)
         input_path = pick_file(root) if target_type == "file" else pick_folder(root)

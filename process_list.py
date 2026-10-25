@@ -38,7 +38,7 @@ from src.cli import process_file
 from src.gui import make_root, pick_method
 from src.transcriber import get_transcriber
 from src.translator import translate_existing_srt
-from src.utils import find_media_files, find_original_srt_files, is_skippable_folder
+from src.utils import clean_path, find_media_files, find_original_srt_files, is_skippable_folder
 
 
 def _pick_list_file() -> Path:
@@ -71,7 +71,7 @@ def _parse_list_file(list_path: Path) -> list[Path]:
         # Strip optional leading "42. " numbering
         m = re.match(r"^\d+\.\s+(.+)$", line)
         path_str = (m.group(1) if m else line).strip()
-        p = _remap_missing(Path(path_str), list_path)
+        p = _remap_missing(clean_path(path_str), list_path)
         if is_skippable_folder(p):
             continue
         paths.append(p)
@@ -139,7 +139,7 @@ def main() -> None:
     translate = not args.no_translate
 
     # List file — GUI picker if not provided on CLI
-    list_path = Path(args.list_file) if args.list_file else _pick_list_file()
+    list_path = clean_path(args.list_file) if args.list_file else _pick_list_file()
     if not list_path.exists():
         print(f"Error: List file not found: {list_path}")
         sys.exit(1)

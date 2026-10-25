@@ -58,140 +58,112 @@ goto menu
 
 REM =====================================================================
 :run_vdo2srt
-echo.
-echo --- vdo2srt: convert video/audio to subtitles ---
-echo (press Enter on any prompt to accept the default / open a picker)
-echo.
-
-set "INPUT="
-set /p INPUT="Video/audio file or folder [blank = picker]: "
-
-set "ENGINE_ARG="
-echo Engine:  1=Local GPU   2=Local CPU   3=Google Cloud   [blank = picker]
-set "ENGINE_CHOICE="
-set /p ENGINE_CHOICE="Choice: "
-if "!ENGINE_CHOICE!"=="1" set "ENGINE_ARG=--engine local --device cuda"
-if "!ENGINE_CHOICE!"=="2" set "ENGINE_ARG=--engine local --device cpu"
-if "!ENGINE_CHOICE!"=="3" set "ENGINE_ARG=--engine cloud"
-
-set "LANG="
-set /p LANG="Source language code (e.g. ru, ja) [blank = auto-detect]: "
-set "LANG_ARG="
-if not "!LANG!"=="" set "LANG_ARG=--language !LANG!"
-
-set "TRANSLATE=Y"
-set /p TRANSLATE="Translate to another language? (Y/n) [Y]: "
-set "TRANSLATE_ARG="
-set "TARGETLANG_ARG="
-if /i "!TRANSLATE!"=="n" (
-    set "TRANSLATE_ARG=--no-translate"
-) else (
-    set "TARGET="
-    set /p TARGET="Target language [en]: "
-    if not "!TARGET!"=="" set "TARGETLANG_ARG=--target-language !TARGET!"
-)
-
-set "OVERWRITE=N"
-set /p OVERWRITE="Re-transcribe/retranslate existing output? (y/N) [N]: "
-set "OVERWRITE_ARG="
-if /i "!OVERWRITE!"=="y" set "OVERWRITE_ARG=--overwrite"
-
-set "INPUT_ARG="
-if not "!INPUT!"=="" set "INPUT_ARG="!INPUT!""
-
-echo.
-echo Running vdo2srt.py !INPUT_ARG! !ENGINE_ARG! !LANG_ARG! !TRANSLATE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!
-echo.
-"%PY%" "%ROOT%vdo2srt.py" !INPUT_ARG! !ENGINE_ARG! !LANG_ARG! !TRANSLATE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!
-echo.
-echo Finished. Press any key to return to menu.
-pause >nul
+call :banner "vdo2srt: convert video/audio to subtitles"
+call :ask_path "Video/audio file or folder [blank = picker]: "
+call :ask_engine
+call :ask_source_lang
+call :ask_translate
+call :ask_yes OVERWRITE_ARG --overwrite "Re-transcribe/retranslate existing output? (y/N) [N]: "
+set "ARGS=!PATH_ARG! !ENGINE_ARG! !SRCLANG_ARG! !TRANSLATE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!"
+call :run vdo2srt.py
 goto :eof
 
 REM =====================================================================
 :run_process_list
-echo.
-echo --- process_list: batch over folders listed in a text file ---
-echo (press Enter on any prompt to accept the default / open a picker)
-echo.
-
-set "LISTFILE="
-set /p LISTFILE="Folder-list .txt file [blank = picker]: "
-
-set "ENGINE_ARG="
-echo Engine:  1=Local GPU   2=Local CPU   3=Google Cloud   [blank = picker]
-set "ENGINE_CHOICE="
-set /p ENGINE_CHOICE="Choice: "
-if "!ENGINE_CHOICE!"=="1" set "ENGINE_ARG=--engine local --device cuda"
-if "!ENGINE_CHOICE!"=="2" set "ENGINE_ARG=--engine local --device cpu"
-if "!ENGINE_CHOICE!"=="3" set "ENGINE_ARG=--engine cloud"
-
-set "LANG="
-set /p LANG="Source language code (e.g. ru, ja) [blank = auto-detect]: "
-set "LANG_ARG="
-if not "!LANG!"=="" set "LANG_ARG=--language !LANG!"
-
-set "TRANSLATE=Y"
-set /p TRANSLATE="Translate to another language? (Y/n) [Y]: "
-set "TRANSLATE_ARG="
-set "TARGETLANG_ARG="
-if /i "!TRANSLATE!"=="n" (
-    set "TRANSLATE_ARG=--no-translate"
-) else (
-    set "TARGET="
-    set /p TARGET="Target language [en]: "
-    if not "!TARGET!"=="" set "TARGETLANG_ARG=--target-language !TARGET!"
-)
-
-set "OVERWRITE=N"
-set /p OVERWRITE="Re-transcribe/retranslate existing output? (y/N) [N]: "
-set "OVERWRITE_ARG="
-if /i "!OVERWRITE!"=="y" set "OVERWRITE_ARG=--overwrite"
-
-set "LISTFILE_ARG="
-if not "!LISTFILE!"=="" set "LISTFILE_ARG="!LISTFILE!""
-
-echo.
-echo Running process_list.py !LISTFILE_ARG! !ENGINE_ARG! !LANG_ARG! !TRANSLATE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!
-echo.
-"%PY%" "%ROOT%process_list.py" !LISTFILE_ARG! !ENGINE_ARG! !LANG_ARG! !TRANSLATE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!
-echo.
-echo Finished. Press any key to return to menu.
-pause >nul
+call :banner "process_list: batch over folders listed in a text file"
+call :ask_path "Folder-list .txt file [blank = picker]: "
+call :ask_engine
+call :ask_source_lang
+call :ask_translate
+call :ask_yes OVERWRITE_ARG --overwrite "Re-transcribe/retranslate existing output? (y/N) [N]: "
+set "ARGS=!PATH_ARG! !ENGINE_ARG! !SRCLANG_ARG! !TRANSLATE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!"
+call :run process_list.py
 goto :eof
 
 REM =====================================================================
 :run_translate_srt
+call :banner "translate_srt: translate existing SRT files only"
+call :ask_path "A .srt file, a folder, or a library root [blank = picker]: "
+call :ask_yes RECURSIVE_ARG --recursive "Recursive - treat input as a library root of movie folders? (y/N) [N]: "
+call :ask_target_lang
+call :ask_yes OVERWRITE_ARG --overwrite "Retranslate and replace existing translations? (y/N) [N]: "
+set "ARGS=!PATH_ARG! !RECURSIVE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!"
+call :run translate_srt.py
+goto :eof
+
+REM =====================================================================
+REM  Shared prompts. Each one sets a *_ARG variable (empty = use default).
+REM =====================================================================
+
+:banner
 echo.
-echo --- translate_srt: translate existing SRT files only ---
+echo --- %~1 ---
 echo (press Enter on any prompt to accept the default / open a picker)
 echo.
+goto :eof
 
-set "INPUT="
-set /p INPUT="A .srt file, a folder, or a library root [blank = picker]: "
+REM Path prompt -> PATH_ARG. Strips any quotes the user typed or pasted
+REM (Explorer "Copy as path", drag-and-drop) before re-quoting once, so a
+REM quoted path with spaces is not split into several arguments.
+:ask_path
+set "PATH_ARG="
+set "_IN="
+set /p _IN="%~1"
+if defined _IN set "_IN=!_IN:"=!"
+if defined _IN set "PATH_ARG="!_IN!""
+goto :eof
 
-set "RECURSIVE=N"
-set /p RECURSIVE="Recursive - treat input as a library root of movie folders? (y/N) [N]: "
-set "RECURSIVE_ARG="
-if /i "!RECURSIVE!"=="y" set "RECURSIVE_ARG=--recursive"
+:ask_engine
+set "ENGINE_ARG="
+echo Engine:  1=Local GPU   2=Local CPU   3=Google Cloud   [blank = picker]
+set "_IN="
+set /p _IN="Choice: "
+if "!_IN!"=="1" set "ENGINE_ARG=--engine local --device cuda"
+if "!_IN!"=="2" set "ENGINE_ARG=--engine local --device cpu"
+if "!_IN!"=="3" set "ENGINE_ARG=--engine cloud"
+goto :eof
 
-set "TARGET="
-set /p TARGET="Target language [en]: "
+:ask_source_lang
+set "SRCLANG_ARG="
+set "_IN="
+set /p _IN="Source language code (e.g. ru, ja) [blank = auto-detect]: "
+if defined _IN set "SRCLANG_ARG=--language !_IN!"
+goto :eof
+
+:ask_target_lang
 set "TARGETLANG_ARG="
-if not "!TARGET!"=="" set "TARGETLANG_ARG=--target-language !TARGET!"
+set "_IN="
+set /p _IN="Target language [en]: "
+if defined _IN set "TARGETLANG_ARG=--target-language !_IN!"
+goto :eof
 
-set "OVERWRITE=N"
-set /p OVERWRITE="Retranslate and replace existing translations? (y/N) [N]: "
-set "OVERWRITE_ARG="
-if /i "!OVERWRITE!"=="y" set "OVERWRITE_ARG=--overwrite"
+REM Translate? (default yes) -> TRANSLATE_ARG, plus TARGETLANG_ARG when yes.
+:ask_translate
+set "TRANSLATE_ARG="
+set "TARGETLANG_ARG="
+set "_IN="
+set /p _IN="Translate to another language? (Y/n) [Y]: "
+if /i "!_IN!"=="n" (
+    set "TRANSLATE_ARG=--no-translate"
+) else (
+    call :ask_target_lang
+)
+goto :eof
 
-set "INPUT_ARG="
-if not "!INPUT!"=="" set "INPUT_ARG="!INPUT!""
+REM Yes/no (default no): ask_yes VAR --flag "prompt" -> VAR=--flag on y.
+:ask_yes
+set "%~1="
+set "_IN="
+set /p _IN="%~3"
+if /i "!_IN!"=="y" set "%~1=%~2"
+goto :eof
 
+REM Runs a root script with ARGS, then waits before returning to the menu.
+:run
 echo.
-echo Running translate_srt.py !INPUT_ARG! !RECURSIVE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!
+echo Running %~1 !ARGS!
 echo.
-"%PY%" "%ROOT%translate_srt.py" !INPUT_ARG! !RECURSIVE_ARG! !TARGETLANG_ARG! !OVERWRITE_ARG!
+"%PY%" "%ROOT%%~1" !ARGS!
 echo.
 echo Finished. Press any key to return to menu.
 pause >nul

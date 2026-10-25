@@ -181,7 +181,7 @@ vdo2srt "movie.mkv" --engine local --language ru
 ```
 vdo2srt/
 ├── vdo2srt.py           # Single file / one folder — delegates to src/cli.py
-├── vdo2srt.bat          # Windows launcher (menu: vdo2srt / translate_srt)
+├── vdo2srt.bat          # Windows launcher (menu: vdo2srt / process_list / translate_srt)
 ├── process_list.py      # Batch over many folders listed in a text file
 ├── process_list.bat     # Windows launcher
 ├── translate_srt.py     # Translate existing .srt files only — no video/transcription
@@ -189,8 +189,10 @@ vdo2srt/
 ├── translate_routing.txt # Per-language translation engine routing (edit to add/move languages)
 ├── pyproject.toml       # Python packaging (pip install .)
 ├── requirements.txt     # Pip dependencies
+├── requirements-gpu.txt # NVIDIA cuBLAS/cuDNN wheels (setup.bat adds them on a GPU PC)
+├── setup.bat            # Builds/repairs venv\ for this PC
+├── _env.bat             # Shared launcher start-up (ROOT, PY, GPU DLL path, venv check)
 ├── .env.example         # Credentials env var template
-├── test_google_apis.py  # Google Cloud API smoke test
 ├── src/
 │   ├── __init__.py     # Package marker, version string
 │   ├── __main__.py     # python -m src entry point
@@ -205,6 +207,7 @@ vdo2srt/
 ├── docs/
 │   ├── technical.md    # Architecture & module reference
 │   ├── user_manual.md  # Detailed user guide
+│   ├── how_to_run_windows.txt # Quick Windows how-to (menu + command-line examples)
 │   └── user_manual.svg # Visual workflow diagram
 └── LICENSE
 ```
